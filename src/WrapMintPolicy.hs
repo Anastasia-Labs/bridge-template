@@ -47,7 +47,7 @@ paysAmountToPkh = phoistAcyclic $
           PScriptCredential _ -> pcon PFalse
     pure result
 
---TODO: add TokenName as parameter
+-- TODO: add TokenName as parameter
 policy :: Term s ((PAsData PScriptHash) :--> PMintingPolicy)
 policy = phoistAcyclic $ plam $ \guardianValHash redeemer' ctx -> unTermCont $ do
   ctxF <- pletFieldsC @'["purpose", "txInfo"] ctx
