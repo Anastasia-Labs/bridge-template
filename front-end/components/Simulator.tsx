@@ -1,6 +1,6 @@
 import { Lucid } from "lucid-cardano";
 import React, { useEffect, useState } from "react";
-import * as runSimulator from "@/endpoints/test/runSimulator";
+import * as runSimulator from "@/endpoints/tests/runSimulator";
 import Alert from "./Alert";
 import Button from "./Button";
 
@@ -37,11 +37,16 @@ export const Simulator = ({ lucid }: Props) => {
 		await runSimulator.deploy(lucid);
 	};
 
+	const handleClick5 = async () => {
+		await runSimulator.burn(lucid);
+	};
+
 	return (
 		<div>
 			<h1 className="text-5xl font-bold text-center">Simulator</h1>
 			<div className="flex justify-center">
 				<Button onClick={() => handleClick1()} text="Request" />
+				<Button onClick={() => handleClick5()} text="Burn" />
 				<Button onClick={() => handleClick2()} text="FullFill" />
 				<Button onClick={() => handleClick3()} text="Update" />
 				<Button onClick={() => handleClick4()} text="Deploy" />

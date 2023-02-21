@@ -1,7 +1,7 @@
-import { Data, KeyHash, Script, Unit, UTxO } from "lucid-cardano";
+import { Data, KeyHash, Script, TxHash, Unit, UTxO } from "lucid-cardano";
 
 export type ValidDatumUTXO = {
-	datum: { amountDeposit: bigint; address: string };
+	datum: { bridgeAmount: bigint; cardanoAddress: string; btcAddress: string };
 	utxo: UTxO;
 };
 
@@ -16,6 +16,11 @@ export type ConfigMultiSig = {
 	requiredCount: number;
 };
 
+export type ConfigDeploy = {
+	multisig: ConfigMultiSig;
+	bridgeTokenName: string;
+}
+
 export type ConfigUpdateMultiSig = {
 	multiSigValidator: Script;
 	unit: Unit;
@@ -24,7 +29,11 @@ export type ConfigUpdateMultiSig = {
 };
 
 export type ConfigFullFill = {
-	unit: Unit;
+	units: {
+		multiSigCert: Unit;
+		bridgeToken: Unit;
+	};
+	bridgeTokenName: string;
 	scripts: DeployedScripts;
 	keys: KeyHash[];
 };
@@ -33,5 +42,14 @@ export type DeployedScripts = {
 	multiSigValidator: Script;
 	multiSigMintingPolicy: Script;
 	guardianValidator: Script;
-	cBTCMintingPolicy: Script;
+	wrapMintingPolicy: Script;
+};
+
+export type Deployments = {
+	txHash: TxHash;
+	scripts: DeployedScripts;
+	units: {
+		multiSigCert: Unit;
+		bridgeToken: Unit;
+	};
 };

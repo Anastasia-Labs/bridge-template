@@ -1,15 +1,15 @@
 import { Constr, Data, fromText, Lucid, toUnit } from "lucid-cardano";
-import { ConfigMultiSig } from "./types";
+import { ConfigDeploy } from "./types";
 import { buildScripts } from "./utils";
 
-export const submit = async (lucid: Lucid, config: ConfigMultiSig) => {
+export const submit = async (lucid: Lucid, config: ConfigDeploy) => {
 	const walletUtxos = await lucid.wallet.getUtxos();
 	const walletTxHash = walletUtxos[0].txHash;
 	const walletOutputIndex = walletUtxos[0].outputIndex;
 
 	const scripts = buildScripts(
 		lucid,
-		config.keys[0],
+		config.multisig.keys[0],
 		walletTxHash,
 		walletOutputIndex
 	);
@@ -21,11 +21,16 @@ export const submit = async (lucid: Lucid, config: ConfigMultiSig) => {
 		scripts.multiSigMintingPolicy
 	);
 
-	const unit = toUnit(multisigPolicyId, fromText("MultiSigCert"));
-	const asset = { [unit]: BigInt(1) };
+	const wrapPolicyId = lucid.utils.mintingPolicyToId(scripts.wrapMintingPolicy);
+
+	const units = {
+		multiSigCert: toUnit(multisigPolicyId, fromText("MultiSigCert")),
+		bridgeToken: toUnit(wrapPolicyId, fromText(config.bridgeTokenName)),
+	};
+	const asset = { [units.multiSigCert]: BigInt(1) };
 
 	const Datum = Data.to(
-		new Constr(0, [config.keys, BigInt(config.requiredCount)])
+		new Constr(0, [config.multisig.keys, BigInt(config.multisig.requiredCount)])
 	);
 
 	const RedeemerPolicy = Data.to(new Constr(0, [])); // PMintGuardianCrt
@@ -35,11 +40,10 @@ export const submit = async (lucid: Lucid, config: ConfigMultiSig) => {
 		.collectFrom([walletUtxos[0]])
 		.attachMintingPolicy(scripts.multiSigMintingPolicy)
 		.mintAssets(asset, RedeemerPolicy)
-		// .payToContract(multisigValidatorAddr, { inline: Datum }, {...asset,lovelace: BigInt(2000000)} )
 		.payToContract(multisigValidatorAddr, { inline: Datum }, asset)
 		.complete();
 
 	const signedTx = await tx.sign().complete();
 	const txHash = await signedTx.submit();
-	return { txHash, scripts, unit };
+	return { txHash, scripts, units };
 };

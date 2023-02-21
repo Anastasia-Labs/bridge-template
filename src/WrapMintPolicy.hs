@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module CBTCMintPolicy (policy) where
+module WrapMintPolicy (policy) where
 
 import GuardianValidator (PWitnessDatum)
 import Plutarch.Api.V1.Address (PCredential (PPubKeyCredential, PScriptCredential))
@@ -57,7 +57,6 @@ policy = phoistAcyclic $ plam $ \guardianValHash redeemer' ctx -> unTermCont $ d
   mintedCS <- pletC $ ppositiveSymbolValueOf # ownPolicyId # infoF.mint
   burnedCS <- pletC $ pnegativeSymbolValueOf # ownPolicyId # infoF.mint
   redeemer <- fst <$> ptryFromC @PMintBTCAction redeemer'
-
   pure $
     popaque $
       pif
@@ -76,13 +75,14 @@ policy = phoistAcyclic $ plam $ \guardianValHash redeemer' ctx -> unTermCont $ d
               guardianDatumF <- pletFieldsC @["cardanoPKH", "bridgeAmt"] guardianInpDatum
               gbridgeAmt <- pletC $ pfromData guardianDatumF.bridgeAmt
               PPubKeyCredential ((pfield @"_0" #) -> cardanoPKH) <- pmatchC $ pfield @"credential" # pfromData guardianDatumF.cardanoPKH
+              ptraceC (pshow cardanoPKH)
               pure $
-                ptraceIfFalse "CBTCMintPolicy f1" (mintedCS #== gbridgeAmt) -- NOTE: This may fail if more utxos are in the tx
+                ptraceIfFalse "CBTCMintPolicy f1" (mintedCS #== gbridgeAmt)
                   #&& ptraceIfFalse "CBTCMintPolicy f2" (pany # (paysAmountToPkh # gbridgeAmt # ownPolicyId # cardanoPKH) # pfromData infoF.outputs)
                   #&& ptraceIfFalse "CBTCMintPolicy f3" (burnedCS #== 0)
             PBurnBTC _ ->
-              ptraceIfFalse "CBTCMintPolicy f1" (mintedCS #== 0)
-                #&& ptraceIfFalse "CBTCMintPolicy f1" (burnedCS #> 0)
+              ptraceIfFalse "CBTCMintPolicy f4" (mintedCS #== 0)
+                #&& ptraceIfFalse "CBTCMintPolicy f5" (burnedCS #< 0)
         )
         (pconstant ())
         perror

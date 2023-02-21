@@ -1,7 +1,7 @@
 import * as utils from "@/endpoints/utils";
 import { Lucid } from "lucid-cardano";
 import React, { useEffect, useState } from "react";
-import { deployments } from "../endpoints/test/runSimulator";
+import { deployments } from "../endpoints/config.deployment";
 import Alert from "./Alert";
 import Button from "./Button";
 

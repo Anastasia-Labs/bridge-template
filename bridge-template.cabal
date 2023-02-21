@@ -141,12 +141,12 @@ common test-dependencies
 library
   import:          lang, dependencies
   exposed-modules:
-    CBTCMintPolicy
     Collection.Utils
     GuardianValidator
     MultiSigMintPolicy
     MultiSigValidator
     Utils
+    WrapMintPolicy
 
   hs-source-dirs:  src
 

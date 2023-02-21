@@ -13,6 +13,7 @@ import {
 	TxHash,
 	Constr,
 	SpendingValidator,
+	toText,
 } from "lucid-cardano";
 import { AnyDatumUTXO, ValidDatumUTXO, DeployedScripts } from "./types";
 
@@ -21,7 +22,6 @@ export const getAllDatums = async (
 	guardianValApplied: Script
 ): Promise<AnyDatumUTXO[]> => {
 	console.log("Getting All Datums");
-
 	const guardianValidatorAddr: Address =
 		lucid.utils.validatorToAddress(guardianValApplied);
 
@@ -34,13 +34,19 @@ export const getAllDatums = async (
 		// Try parsing Data -> Address
 		// Address: must have StakingHash
 		// Valid Address type:  (PubKeyCredential (<PubKeyHash>)) (Just (StakingHash (PubKeyCredential (<PubKeyHash>))))
-		const amount = datumAsData.fields[0];
+		const bridgeAmount = datumAsData.fields[0];
+		const btcAddress = toText(datumAsData.fields[1]);
 		const paymentCredentialHash: string =
 			datumAsData.fields[2]?.fields[0]?.fields[0];
 		const stakeCredentialHash: string =
 			datumAsData.fields[2]?.fields[1]?.fields[0]?.fields[0]?.fields[0];
 
-		if (!paymentCredentialHash || !stakeCredentialHash || !amount) {
+		if (
+			!paymentCredentialHash ||
+			!stakeCredentialHash ||
+			!bridgeAmount ||
+			!btcAddress
+		) {
 			return {
 				isValid: false,
 				datum: datumAsData,
@@ -56,8 +62,9 @@ export const getAllDatums = async (
 			lucid.utils.keyHashToCredential(stakeCredentialHash);
 
 		const readableDatum = {
-			amountDeposit: amount,
-			address: lucid.utils.credentialToAddress(
+			bridgeAmount: bridgeAmount,
+			btcAddress: btcAddress,
+			cardanoAddress: lucid.utils.credentialToAddress(
 				paymentCredential,
 				stakeCredential
 			), // Convert to Bech32 Address
@@ -74,7 +81,6 @@ export const getAllDatums = async (
 
 // Only Address with Staking Credential is supported
 //TODO: Maybe consider using TypeBox or Zod for safety data validation
-//TODO: Add btc address to readableDatum
 export const getValidDatums = async (
 	lucid: Lucid,
 	guardianValApplied: Script
@@ -88,15 +94,20 @@ export const getValidDatums = async (
 	const datumUtxoList = scriptUtxos.reduce((acc: ValidDatumUTXO[], utxo) => {
 		const datumCbor = utxo.datum || "";
 		const datumAsData: any = Data.from(datumCbor);
-		console.log(datumAsData);
 
-		const amount = datumAsData.fields[0];
+		const bridgeAmount = datumAsData.fields[0];
+		const btcAddress = toText(datumAsData.fields[1]);
 		const paymentCredentialHash: string =
 			datumAsData.fields[2]?.fields[0]?.fields[0];
 		const stakeCredentialHash: string =
 			datumAsData.fields[2]?.fields[1]?.fields[0]?.fields[0]?.fields[0];
 
-		if (paymentCredentialHash && stakeCredentialHash && amount) {
+		if (
+			paymentCredentialHash &&
+			stakeCredentialHash &&
+			bridgeAmount &&
+			btcAddress
+		) {
 			const paymentCredential: Credential = lucid.utils.keyHashToCredential(
 				paymentCredentialHash
 			);
@@ -105,8 +116,9 @@ export const getValidDatums = async (
 				lucid.utils.keyHashToCredential(stakeCredentialHash);
 
 			const readableDatum = {
-				amountDeposit: amount,
-				address: lucid.utils.credentialToAddress(
+				bridgeAmount: bridgeAmount,
+				btcAddress: btcAddress,
+				cardanoAddress: lucid.utils.credentialToAddress(
 					paymentCredential,
 					stakeCredential
 				), // Convert to Bech32 Address
@@ -170,9 +182,9 @@ export const buildScripts = (
 		]),
 	};
 
-	const cBTCMintingPolicy: MintingPolicy = {
+	const wrapMintingPolicy: MintingPolicy = {
 		type: "PlutusV2",
-		script: applyParamsToScript(validators.cBTCMintingPolicy.script, [
+		script: applyParamsToScript(validators.wrapMintingPolicy.script, [
 			lucid.utils.validatorToScriptHash(guardianValidator),
 		]),
 	};
@@ -181,6 +193,6 @@ export const buildScripts = (
 		multiSigValidator: validators.multiSigValidator,
 		multiSigMintingPolicy: multiSigMintingPolicy,
 		guardianValidator: guardianValidator,
-		cBTCMintingPolicy: cBTCMintingPolicy,
+		wrapMintingPolicy: wrapMintingPolicy,
 	} as DeployedScripts;
 };

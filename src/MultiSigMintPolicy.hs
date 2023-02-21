@@ -11,7 +11,7 @@ import Plutarch.Prelude
 import PlutusTx qualified
 
 import Collection.Utils (paysToCredential, phasInput, pheadSingleton, pnegativeSymbolValueOf, ppositiveSymbolValueOf)
-import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC, ptryFromC)
+import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC)
 
 data GuardianMintAction
   = MintGuardianCrt
@@ -42,9 +42,10 @@ instance PTryFrom PData (PAsData PGuardianMintAction)
 
 policy :: Term s ((PAsData PPubKeyHash) :--> (PAsData PScriptHash) :--> PTxOutRef :--> PMintingPolicy)
 policy = phoistAcyclic $
-  plam $ \guardianSignerPKH multisigVH oref redm' context -> unTermCont $ do
+  plam $ \guardianSignerPKH multisigVH oref _ context -> unTermCont $ do
     contextFields <- pletFieldsC @["txInfo", "purpose"] context
-    PMinting ((pfield @"_0" #) -> ownPolicyId) <- pmatchC contextFields.purpose
+    PMinting ownPolicyId' <- pmatchC contextFields.purpose
+    ownPolicyId <- pletC $ pfield @"_0" # ownPolicyId'
     txInfoFields <- pletFieldsC @["inputs", "outputs", "mint"] contextFields.txInfo
     mintedRTs <- pletC $ ppositiveSymbolValueOf # ownPolicyId # txInfoFields.mint
     burnedRTs <- pletC $ pnegativeSymbolValueOf # ownPolicyId # txInfoFields.mint
@@ -57,22 +58,13 @@ policy = phoistAcyclic $
     msDatumF <- pletFieldsC @["keys", "requiredCount"] msOutputDatum
     let correctDatum = (pheadSingleton # msDatumF.keys #== guardianSignerPKH) #&& pfromData msDatumF.requiredCount #== 1
         isUtxoSpent = phasInput # txInfoFields.inputs # oref
-    redm <- fst <$> ptryFromC @PGuardianMintAction redm'
     pure $
       popaque $
         pif
-          ( pmatch
-              redm
-              ( \case
-                  PMintGuardianCrt _ ->
-                    ptraceIfFalse "MultiSigMintPolicy f1" (mintedRTs #== 1)
-                      #&& ptraceIfFalse "MultiSigMintPolicy f2" (burnedRTs #== 0)
-                      #&& ptraceIfFalse "MultiSigMintPolicy f3" (correctDatum)
-                      #&& ptraceIfFalse "MultiSigMintPolicy f4" (isUtxoSpent)
-                  PBurnGuardianCrt _ ->
-                    ptraceIfFalse "MultiSigMintPolicy f5" (mintedRTs #== 0)
-                      #&& ptraceIfFalse "MultiSigMintPolicy f6" (burnedRTs #== 1)
-              )
+          ( ptraceIfFalse "MultiSigMintPolicy f1" (mintedRTs #== 1)
+              #&& ptraceIfFalse "MultiSigMintPolicy f2" (burnedRTs #== 0)
+              #&& ptraceIfFalse "MultiSigMintPolicy f3" (correctDatum)
+              #&& ptraceIfFalse "MultiSigMintPolicy f4" (isUtxoSpent)
           )
           (pconstant ())
           perror

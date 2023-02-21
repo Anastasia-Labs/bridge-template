@@ -1,4 +1,4 @@
-import { Constr, Lucid, Data, fromText, toUnit } from "lucid-cardano";
+import { Constr, Lucid, Data } from "lucid-cardano";
 import { ConfigFullFill, ValidDatumUTXO } from "./types";
 
 export const build = async (
@@ -9,7 +9,7 @@ export const build = async (
 	const info = {
 		multisigVal: {
 			validator: config.scripts.multiSigValidator,
-			utxo: await lucid.utxoByUnit(config.unit),
+			utxo: await lucid.utxoByUnit(config.units.multiSigCert),
 			address: lucid.utils.validatorToAddress(config.scripts.multiSigValidator),
 			redeemer: Data.to(new Constr(1, [])), // PSign
 		},
@@ -20,26 +20,19 @@ export const build = async (
 				return value.utxo;
 			}),
 		},
-		cBTCMint: {
-			policy: config.scripts.cBTCMintingPolicy,
-			policyID: lucid.utils.mintingPolicyToId(config.scripts.cBTCMintingPolicy),
-			unit: toUnit(
-				lucid.utils.mintingPolicyToId(config.scripts.cBTCMintingPolicy),
-				fromText("cBTC")
-			),
+		wrapMint: {
+			policy: config.scripts.wrapMintingPolicy,
+			policyID: lucid.utils.mintingPolicyToId(config.scripts.wrapMintingPolicy),
+			unit: config.units.bridgeToken,
 			redeemer: Data.to(new Constr(0, [])), // PMintBTC
 		},
 	};
-	console.log("info", info);
-	console.log(lucid.utils.validatorToScriptHash(info.multisigVal.validator));
-	console.log(lucid.utils.validatorToScriptHash(info.guardianVal.validator));
-	console.log(lucid.utils.validatorToScriptHash(info.cBTCMint.policy));
 
 	const totalAmount = guardianDatumUtxoList.reduce((acc, value) => {
-		return acc + value.datum.amountDeposit;
+		return acc + value.datum.bridgeAmount;
 	}, BigInt(0));
 
-	const totalAssets = { [info.cBTCMint.unit]: totalAmount };
+	const totalAssets = { [info.wrapMint.unit]: totalAmount };
 
 	const guardianValTx = lucid
 		.newTx()
@@ -56,15 +49,15 @@ export const build = async (
 			info.multisigVal.utxo.assets
 		);
 
-	const cBTCMintTx = lucid
+	const wrapMintTx = lucid
 		.newTx()
-		.attachMintingPolicy(info.cBTCMint.policy)
-		.mintAssets(totalAssets, info.cBTCMint.redeemer);
+		.attachMintingPolicy(info.wrapMint.policy)
+		.mintAssets(totalAssets, info.wrapMint.redeemer);
 
 	const outputs = guardianDatumUtxoList
 		.map((value) => {
-			return lucid.newTx().payToAddress(value.datum.address, {
-				[info.cBTCMint.unit]: value.datum.amountDeposit,
+			return lucid.newTx().payToAddress(value.datum.cardanoAddress, {
+				[info.wrapMint.unit]: value.datum.bridgeAmount,
 			});
 		})
 		.reduce((prevTx, tx) => {
@@ -83,27 +76,10 @@ export const build = async (
 		.newTx()
 		.compose(guardianValTx)
 		.compose(multisigValTx)
-		.compose(cBTCMintTx)
+		.compose(wrapMintTx)
 		.compose(outputs)
 		.compose(signers)
 		.complete();
-
-	// const tx = await lucid
-	// 	.newTx()
-	// 	.attachMintingPolicy(info.minter.policy)
-	// 	.mintAssets(totalAssets, info.minter.redeemer)
-	// 	.collectFrom(info.guardian.utxos, info.guardian.redeemer)
-	// 	.attachSpendingValidator(info.guardian.validator)
-	// 	.collectFrom([info.multisig.utxo], info.multisig.redeemer)
-	// 	.attachSpendingValidator(info.multisig.validator)
-	// 	.payToContract(
-	// 		info.multisig.address,
-	// 		{ inline: info.multisig.utxo.datum || "" },
-	// 		info.multisig.utxo.assets
-	// 	)
-	// 	.compose(outputs)
-	// 	.compose(signers)
-	// 	.complete();
 
 	return tx;
 };

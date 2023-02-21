@@ -5,6 +5,7 @@ import {
 	Address,
 	AddressDetails,
 	Script,
+	fromText,
 } from "lucid-cardano";
 
 export const submit = async (
@@ -30,7 +31,7 @@ export const submit = async (
 			]),
 		]);
 		const Datum = Data.to(
-			new Constr(0, [BigInt(bridgeAmount), otherChainAddr, addressAsData])
+			new Constr(0, [BigInt(bridgeAmount), fromText(otherChainAddr), addressAsData])
 		);
 		const tx = await lucid
 			.newTx()

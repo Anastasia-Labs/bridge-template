@@ -1,4 +1,4 @@
-import { deployments } from "@/endpoints/test/runSimulator";
+import { deployments } from "@/endpoints/tests/runSimulator";
 import * as user_request from "@/endpoints/user.request";
 import { Lucid } from "lucid-cardano";
 import React, { useEffect, useState } from "react";
