@@ -14,6 +14,7 @@ import { deployments } from "../config.deployment";
 
 // Accounts generated with utils.generateAddressSeedPhrase()
 // These account have StakingCredential
+//TODO: generate new addresses
 const signers = {
 	account1: {
 		seedPhrase:
@@ -55,6 +56,7 @@ const signers = {
 
 // Accounts generated with utils.generateAddressSeedPhrase()
 // These account have StakingCredential
+//TODO: generate new addresses
 const user = {
 	account1: {
 		seedPhrase:
@@ -75,7 +77,7 @@ export const deploy = async (lucid: Lucid) => {
 	};
 
 	console.log(deployConfig);
-
+	//TODO: consider adding script addresses
 	const deployments = await multisig_deploy.submit(lucid, deployConfig);
 
 	console.log(deployments);
