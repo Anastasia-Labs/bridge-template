@@ -34,22 +34,19 @@ instance DerivePlutusType PMintBTCAction where
 
 instance PTryFrom PData PMintBTCAction
 
-cBTCTokenName :: Term s PTokenName
-cBTCTokenName = pconstant "cBTC"
-
-paysAmountToPkh :: Term s (PInteger :--> PCurrencySymbol :--> PPubKeyHash :--> PTxOut :--> PBool)
+paysAmountToPkh :: Term s (PTokenName :--> PInteger :--> PCurrencySymbol :--> PPubKeyHash :--> PTxOut :--> PBool)
 paysAmountToPkh = phoistAcyclic $
-  plam $ \amt ownCS userPKH txOut -> unTermCont $ do
+  plam $ \tn amt ownCS userPKH txOut -> unTermCont $ do
     txOutFields <- tcont $ pletFields @["address", "value"] txOut
     let cred = pfield @"credential" # txOutFields.address
         result = pmatch cred $ \case
-          PPubKeyCredential ((pfield @"_0" #) -> pkh) -> (pkh #== userPKH) #&& (amt #<= (pvalueOf # txOutFields.value # ownCS # cBTCTokenName))
+          PPubKeyCredential ((pfield @"_0" #) -> pkh) -> (pkh #== userPKH) #&& (amt #<= (pvalueOf # txOutFields.value # ownCS # tn))
           PScriptCredential _ -> pcon PFalse
     pure result
 
--- TODO: add TokenName as parameter
-policy :: Term s ((PAsData PScriptHash) :--> PMintingPolicy)
-policy = phoistAcyclic $ plam $ \guardianValHash redeemer' ctx -> unTermCont $ do
+-- TODO: add TokenName as parameter, test emulator
+policy :: Term s ((PAsData PTokenName) :--> (PAsData PScriptHash) :--> PMintingPolicy)
+policy = phoistAcyclic $ plam $ \bridgeTn guardianValHash redeemer' ctx -> unTermCont $ do
   ctxF <- pletFieldsC @'["purpose", "txInfo"] ctx
   infoF <- pletFieldsC @'["inputs", "outputs", "mint"] ctxF.txInfo
   PMinting policy <- pmatchC $ pfromData ctxF.purpose
@@ -79,7 +76,7 @@ policy = phoistAcyclic $ plam $ \guardianValHash redeemer' ctx -> unTermCont $ d
               ptraceC (pshow cardanoPKH)
               pure $
                 ptraceIfFalse "CBTCMintPolicy f1" (mintedCS #== gbridgeAmt)
-                  #&& ptraceIfFalse "CBTCMintPolicy f2" (pany # (paysAmountToPkh # gbridgeAmt # ownPolicyId # cardanoPKH) # pfromData infoF.outputs)
+                  #&& ptraceIfFalse "CBTCMintPolicy f2" (pany # (paysAmountToPkh # (pfromData bridgeTn) # gbridgeAmt # ownPolicyId # cardanoPKH) # pfromData infoF.outputs)
                   #&& ptraceIfFalse "CBTCMintPolicy f3" (burnedCS #== 0)
             PBurnBTC _ ->
               ptraceIfFalse "CBTCMintPolicy f4" (mintedCS #== 0)

@@ -1,6 +1,5 @@
 module Main (main) where
 
-import CBTCMintPolicy qualified
 import GuardianValidator qualified
 import MultiSigMintPolicy qualified
 import MultiSigValidator qualified
@@ -9,6 +8,7 @@ import System.Directory (
   doesDirectoryExist,
  )
 import Utils (writePlutusScript)
+import WrapMintPolicy qualified
 
 main :: IO ()
 main = do
@@ -32,5 +32,5 @@ main = do
 
   writePlutusScript
     "CBTC Minting Policy"
-    "./compiled/cBTCMintingPolicy.plutus"
-    CBTCMintPolicy.policy
+    "./compiled/wrapMintingPolicy.plutus"
+    WrapMintPolicy.policy

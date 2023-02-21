@@ -181,7 +181,7 @@ export const buildScripts = (
 			lucid.utils.mintingPolicyToId(multiSigMintingPolicy),
 		]),
 	};
-
+	//TODO: Add TokenName as parameter
 	const wrapMintingPolicy: MintingPolicy = {
 		type: "PlutusV2",
 		script: applyParamsToScript(validators.wrapMintingPolicy.script, [
