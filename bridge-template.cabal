@@ -1,0 +1,174 @@
+cabal-version:      3.0
+name:               bridge-template
+version:            0.1.0.0
+
+-- A short (one-line) description of the package.
+-- synopsis:
+
+-- A longer description of the package.
+-- description:
+
+-- A URL where users can report bugs.
+-- bug-reports:
+
+-- The license under which the package is released.
+-- license:
+author:             SolidSnake
+maintainer:         solid@snake
+
+-- A copyright notice.
+-- copyright:
+-- category:
+extra-source-files: CHANGELOG.md
+
+common lang
+  ghc-options:
+    -Werror -Wall -Wcompat -Wincomplete-uni-patterns
+    -Wno-unused-do-bind -Wno-partial-type-signatures
+    -Wmissing-export-lists -Wincomplete-record-updates
+    -Wmissing-deriving-strategies -Wno-name-shadowing -Wunused-foralls
+    -fprint-explicit-foralls -fprint-explicit-kinds -Wunused-do-bind
+
+  default-extensions:
+    NoFieldSelectors
+    NoStarIsType
+    BangPatterns
+    BinaryLiterals
+    ConstrainedClassMethods
+    ConstraintKinds
+    DataKinds
+    DeriveAnyClass
+    DeriveDataTypeable
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    DerivingStrategies
+    DerivingVia
+    DoAndIfThenElse
+    DuplicateRecordFields
+    EmptyCase
+    EmptyDataDecls
+    EmptyDataDeriving
+    ExistentialQuantification
+    ExplicitForAll
+    FlexibleContexts
+    FlexibleInstances
+    ForeignFunctionInterface
+    GADTSyntax
+    GeneralisedNewtypeDeriving
+    HexFloatLiterals
+    ImplicitPrelude
+    ImportQualifiedPost
+    InstanceSigs
+    KindSignatures
+    LambdaCase
+    MonomorphismRestriction
+    MultiParamTypeClasses
+    NamedFieldPuns
+    NamedWildCards
+    NumericUnderscores
+    OverloadedLabels
+    OverloadedRecordDot
+    OverloadedStrings
+    PackageImports
+    PartialTypeSignatures
+    PatternGuards
+    PolyKinds
+    PostfixOperators
+    QualifiedDo
+    RankNTypes
+    RelaxedPolyRec
+    ScopedTypeVariables
+    StandaloneDeriving
+    StandaloneKindSignatures
+    TupleSections
+    TypeApplications
+    TypeFamilies
+    TypeOperators
+    TypeSynonymInstances
+    UndecidableInstances
+    ViewPatterns
+
+  default-language:   GHC2021
+
+common dependencies
+  build-depends:
+    , aeson
+    , aeson-pretty
+    , base
+    , base16-bytestring
+    , bytestring
+    , cardano-binary
+    , cborg
+    , data-default
+    , directory
+    , liqwid-plutarch-extra
+    , plutarch
+    , plutarch-extra
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-simple-model
+    , plutus-tx
+    , ply-core
+    , ply-plutarch
+    , serialise
+    , text
+
+common test-dependencies
+  build-depends:
+    , aeson-pretty
+    , base
+    , bytestring
+    , hedgehog
+    , hedgehog-quickcheck
+    , liqwid-plutarch-extra
+    , plutarch
+    , plutarch-context-builder
+    , plutarch-extra
+    , plutarch-quickcheck
+    , plutarch-unit
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-tx
+    , tasty
+    , tasty-hedgehog
+    , tasty-hunit
+    , text
+    , uuid
+
+library
+  import:          lang, dependencies
+  exposed-modules:
+    CBTCMintPolicy
+    Collection.Utils
+    GuardianValidator
+    MultiSigMintPolicy
+    MultiSigValidator
+    Utils
+
+  hs-source-dirs:  src
+
+executable bridge-template
+  import:         lang, dependencies
+  main-is:        Main.hs
+
+  -- Modules included in this executable, other than Main.
+  -- other-modules:
+
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
+  build-depends:  bridge-template
+  hs-source-dirs: app
+
+-- test-suite bridge-template-test
+--   import:         lang, test-dependencies
+--   type:           exitcode-stdio-1.0
+--   main-is:        Spec.hs
+--   hs-source-dirs: test
+--   other-modules:
+--     Spec.GuardianValidatorSpec
+--     Spec.MintCBTCSpec
+
+--   build-depends:  bridge-template

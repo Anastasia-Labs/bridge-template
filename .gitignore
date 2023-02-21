@@ -1,0 +1,42 @@
+dist-newstyle
+*.plutus
+tmp
+
+front-end/tmp
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+front-end/node_modules
+front-end/.pnp
+front-end/.pnp.js
+
+# testing
+front-end/coverage
+
+# next.js
+front-end/.next/
+front-end/out/
+
+# production
+front-end/build
+
+# misc
+front-end/.DS_Store
+front-end/*.pem
+
+# debug
+front-end/npm-debug.log*
+front-end/yarn-debug.log*
+front-end/yarn-error.log*
+front-end/.pnpm-debug.log*
+
+# local env files
+front-end/.env*.local
+
+# vercel
+front-end/.vercel
+
+# typescript
+front-end/*.tsbuildinfo
+front-end/next-env.d.ts
