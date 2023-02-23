@@ -196,7 +196,7 @@ export const request = async (lucid: Lucid) => {
 
 export const burn = async (lucid: Lucid) => {
 	lucid.selectWalletFromSeed(user.account1.seedPhrase);
-	const burnAmount = -12;
+	const burnAmount = -5;
 	const otherChainAddress = "15U6C9gZs5G3i11gTfmhqCaKK6V7bqGdmi";
 	const result = await user_burn.submit(
 		lucid,
