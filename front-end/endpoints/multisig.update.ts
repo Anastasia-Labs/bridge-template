@@ -8,13 +8,6 @@ export const build = async (lucid: Lucid, config: ConfigUpdateMultiSig) => {
 		config.multiSigValidator
 	);
 
-	// const Datum = Data.to(
-	// 	new Constr(0, [
-	// 		config.newConfig.cosignerKeys,
-	// 		BigInt(config.newConfig.threshold),
-	// 	])
-	// )
-
 	const MyDatum = Data.Object({
 		keys: Data.Array(Data.String),
 		requiredCount: Data.BigInt,
