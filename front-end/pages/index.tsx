@@ -13,7 +13,7 @@ export default function Home() {
 			</Head>
 			<div className="flex justify-between m-5 px-5 items-center">
 				<div className="flex">
-					<h1 className="text-3xl font-bold underline">cBTC</h1>
+					<h1 className="text-4xl font-bold text-center">Bridge</h1>
 				</div>
 				<div className="flex">
 					<WalletConnect />
