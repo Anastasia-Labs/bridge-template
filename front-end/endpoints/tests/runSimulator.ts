@@ -17,52 +17,38 @@ import { deployments } from "../config.deployment";
 //TODO: generate new addresses
 const signers = {
 	account1: {
-		seedPhrase:
-			"accuse total squeeze adapt stand slam joy lamp poet party pear level sunny banana boil glue because either shine come drum stand shoulder damp",
-		address:
-			"addr_test1qzk8up9zntq4l08r53p7gmpsgc3jdg9fwk79wreqqpsm2r97fdk28qxaf96cj78p5dmupfqe8jrcfxjqrc4hectl93xqr2levc",
+		"seedPhrase": "skate brand slam wild mandate heart pear amateur fun slim trade human few budget narrow ketchup inject twenty real scrub universe credit company weather",
+		"address": "addr_test1qqhrq24gqc3h32tgpuu4qra35fc00hnxlpgzxkalnztspypk9r2y02k9p3e8ppvkap2dhwwdpsy0vuw2epds9ks9qcrs4chlcv"
 	}, // 100
 	account2: {
-		seedPhrase:
-			"machine drip toe west mimic tissue fuel you audit almost segment ridge suffer wood diet priority reflect gadget crack weather course vast alpha minute",
-		address:
-			"addr_test1qqy4xaqqeqk8x08dghtyp32hdn40w3ph93k8erg6lt9qtquxdjv0eq7qec7p0vjux3cx3gclxnl4clpqwehzvxqgpjlsxd6uwq",
+		"seedPhrase": "kiwi also magnet slow produce grocery snap twelve sense orphan settle viable math cart struggle enter pumpkin phrase census kingdom conduct furnace sock indicate",
+		"address": "addr_test1qqwmxeh3m74gn96qlwelpe6vv4a5cwf0fnhtam7pvxashdcq5vqwypzque3gpzwjz9pvgqaacx6uxpch5zvhjejar0aslqm5ky"
 	}, // 100
 	account3: {
-		seedPhrase:
-			"foster lunar steel trim echo blame emotion siege scissors problem audit slender soup daughter soap world symptom behind high lawsuit squeeze employ path rebuild",
-		address:
-			"addr_test1qp70hfk0dtqef3y77e7weduhes5qn9dyjflxsdtkanzttmkherm3zelk4cty8xnmpfx9k3hjmxsy3d3sn43469x79dsqd8azq2",
-	}, // 100
+		"seedPhrase": "fix throw field maximum come husband midnight title hurry effort tribe dice state popular hood admit fruit fancy escape seven seminar monitor edge seat",
+		"address": "addr_test1qp09add6x38jra9v4ds2e8jghxxv7tddjzrupfccq9tmnyfla6m9efnctxpr2puduz0vze3wmycvnlweuna72srtz8kscx0cz0"
+	}
+	, // 100
 	account11: {
-		seedPhrase:
-			"uniform monster match glimpse supply glide term load whip hard fee wrong behind curtain nephew lesson predict appear pink vendor doctor visit quality glory",
-		address:
-			"addr_test1qrs8llu8zcqst2dldrvh84f5jphnxjxxscmel4tes6jtm3jcfcs3snyd0tdklx8n9qnkdnvy7v2q20qxawsqsekny4gsuen575",
+		"seedPhrase": "arrange couch steak capable other fee behind bitter napkin company enough street risk token betray sword tragic oxygen bag abandon dose million puppy tooth",
+		"address": "addr_test1qzqh5kd70uaqejtfl0rp358tnq2thhr4p6v36uytd5vfv2y2hlhjrn285k4dz0v2te74jszsvsgjcaf7a6nwyeyu5p4qqm9q5t"
 	}, // 100
 	account12: {
-		seedPhrase:
-			"ugly thunder nut horn canvas common library this force solid winter guide spirit sure wagon vault bus lens mercy install wife club priority original",
-		address:
-			"addr_test1qz52xndt25hvu8evdshep4puv6jvvh9wmsfcm53x903rpw853z7tyfhplvl8gjq4hgpgcecmj0x2vfe2ppgkwwc7wejsqyv62y",
+		"seedPhrase": "grocery title weather describe issue spray group sell hurdle unfold spell puppy together witness uncle carpet property piano defense people hospital employ hedgehog wait",
+		"address": "addr_test1qzmjwzml7w9f5m9wa0gqaavxzpj2zjz4k4njp4wtknjcyrg704nf5ntez8hyyp2yjw539sk5y4zy8293phn42kpddjmq3yl00s"
 	}, // 100
 	account13: {
-		seedPhrase:
-			"fire iron mirror accuse glass pact retire lava tongue vague clap combine solve prefer raven attract lens tape unable brave stock loyal okay try",
-		address:
-			"addr_test1qz6z9pah4v4legh2a6kren7pfl9fnclklvngg5jf8rrt0jjfpqpd6q2h56urmzl9uljzta5pwqfre5zuzckd9plyzf8qrjs37p",
-	},
+		"seedPhrase": "comfort main buyer rhythm glow wink evidence gap yard clump prepare ghost mandate sunset keep elegant mass victory fox skate merry lady melody degree",
+		"address": "addr_test1qrl55qj5w82zrh4ewyw0hrkjr4lfa5je7j8hfldxcmklkun5vmvmtj6wl74q236ja9nt03mjspj5hkjhp49edu70g2wqrx4n50"
+	}, //100
 };
 
 // Accounts generated with utils.generateAddressSeedPhrase()
 // These account have StakingCredential
-//TODO: generate new addresses
 const user = {
 	account1: {
-		seedPhrase:
-			"click path wonder art cage duty infant shy split rookie extend first unaware boat group provide exercise leopard size mammal monitor bamboo dilemma grow",
-		address:
-			"addr_test1qze80dj5wtpnnrflfjag7hdyn235vwqskhm0fr98kqhey4wwatz92rau7w5ny8lzctkc2tnhfxwvp9gze5yh8j957t6s6ejca0",
+		"seedPhrase": "puzzle mouse invest develop donor popular absent else discover crisp always nuclear toy sting trigger wheel east health into energy again nerve spring buyer",
+		"address": "addr_test1qq7wyy8jpzr39unkaal4n5pp2fy046mndst8gkvpaq8rpgj27qvf8nlk7640flpq6rydke3n0mgnuve4fqgj5ul8xuhq3zg8p5"
 	},
 };
 
@@ -140,7 +126,6 @@ export const fullfil = async (lucid: Lucid) => {
 			lucid.utils.paymentCredentialOf(signers.account2.address).hash,
 			lucid.utils.paymentCredentialOf(signers.account3.address).hash,
 		],
-		bridgeTokenName: "",
 	};
 
 	lucid.selectWalletFromSeed(signers.account1.seedPhrase);

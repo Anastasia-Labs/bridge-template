@@ -1,7 +1,7 @@
 import { Data, KeyHash, Script, TxHash, Unit, UTxO } from "lucid-cardano";
 
 export type ValidDatumUTXO = {
-	datum: { bridgeAmount: bigint; cardanoAddress: string; btcAddress: string };
+	datum: { bridgeAmount: bigint; cardanoAddress: string; otherChainAddress: string };
 	utxo: UTxO;
 };
 
@@ -33,7 +33,6 @@ export type ConfigFullFill = {
 		multiSigCert: Unit;
 		bridgeToken: Unit;
 	};
-	bridgeTokenName: string;
 	scripts: DeployedScripts;
 	keys: KeyHash[];
 };

@@ -44,7 +44,6 @@ paysAmountToPkh = phoistAcyclic $
           PScriptCredential _ -> pcon PFalse
     pure result
 
--- TODO: add TokenName as parameter, test emulator
 policy :: Term s ((PAsData PTokenName) :--> (PAsData PScriptHash) :--> PMintingPolicy)
 policy = phoistAcyclic $ plam $ \bridgeTn guardianValHash redeemer' ctx -> unTermCont $ do
   ctxF <- pletFieldsC @'["purpose", "txInfo"] ctx
@@ -73,14 +72,14 @@ policy = phoistAcyclic $ plam $ \bridgeTn guardianValHash redeemer' ctx -> unTer
               guardianDatumF <- pletFieldsC @["cardanoPKH", "bridgeAmt"] guardianInpDatum
               gbridgeAmt <- pletC $ pfromData guardianDatumF.bridgeAmt
               PPubKeyCredential ((pfield @"_0" #) -> cardanoPKH) <- pmatchC $ pfield @"credential" # pfromData guardianDatumF.cardanoPKH
-              ptraceC (pshow cardanoPKH)
+              ptraceC (pshow cardanoPKH) -- TODO: remove this
               pure $
-                ptraceIfFalse "CBTCMintPolicy f1" (mintedCS #== gbridgeAmt)
-                  #&& ptraceIfFalse "CBTCMintPolicy f2" (pany # (paysAmountToPkh # (pfromData bridgeTn) # gbridgeAmt # ownPolicyId # cardanoPKH) # pfromData infoF.outputs)
-                  #&& ptraceIfFalse "CBTCMintPolicy f3" (burnedCS #== 0)
+                ptraceIfFalse "WrapMintPolicy f1" (mintedCS #== gbridgeAmt)
+                  #&& ptraceIfFalse "WrapMintPolicy f2" (pany # (paysAmountToPkh # (pfromData bridgeTn) # gbridgeAmt # ownPolicyId # cardanoPKH) # pfromData infoF.outputs)
+                  #&& ptraceIfFalse "WrapMintPolicy f3" (burnedCS #== 0)
             PBurnBTC _ ->
-              ptraceIfFalse "CBTCMintPolicy f4" (mintedCS #== 0)
-                #&& ptraceIfFalse "CBTCMintPolicy f5" (burnedCS #< 0)
+              ptraceIfFalse "WrapMintPolicy f4" (mintedCS #== 0)
+                #&& ptraceIfFalse "WrapMintPolicy f5" (burnedCS #< 0)
         )
         (pconstant ())
         perror

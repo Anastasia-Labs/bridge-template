@@ -11,7 +11,8 @@ export const submit = async (lucid: Lucid, config: ConfigDeploy) => {
 		lucid,
 		config.multisig.keys[0],
 		walletTxHash,
-		walletOutputIndex
+		walletOutputIndex,
+		config.bridgeTokenName,
 	);
 	const multisigValidatorAddr = lucid.utils.validatorToAddress(
 		scripts.multiSigValidator

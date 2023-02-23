@@ -42,24 +42,23 @@ const generateAccountSeedPhrase = async (assets: Assets) => {
 
 export const run = async () => {
 	console.log("[State]: initializing Emulator");
-	//TODO: use generateAccountSeedPhrase instead
 	const signers = {
-		account1: await generateAccountPrivateKey({
+		account1: await generateAccountSeedPhrase({
 			lovelace: BigInt(1000000000),
 		}),
-		account2: await generateAccountPrivateKey({
+		account2: await generateAccountSeedPhrase({
 			lovelace: BigInt(1000000000),
 		}),
-		account3: await generateAccountPrivateKey({
+		account3: await generateAccountSeedPhrase({
 			lovelace: BigInt(1000000000),
 		}),
-		account11: await generateAccountPrivateKey({
+		account11: await generateAccountSeedPhrase({
 			lovelace: BigInt(1000000000),
 		}),
-		account12: await generateAccountPrivateKey({
+		account12: await generateAccountSeedPhrase({
 			lovelace: BigInt(1000000000),
 		}),
-		account13: await generateAccountPrivateKey({
+		account13: await generateAccountSeedPhrase({
 			lovelace: BigInt(1000000000),
 		}),
 	};
@@ -85,16 +84,18 @@ export const run = async () => {
 
 	// Set initial signers, at the moment the MultiSigMintPolicy takes one signer to initialize the datum
 	const deployConfig: ConfigDeploy = {
-		multisig : {requiredCount: 1,
-		keys: [
-			lucid.utils.paymentCredentialOf(signers.account1.address).hash,
-		],},
+		multisig: {
+			requiredCount: 1,
+			keys: [
+				lucid.utils.paymentCredentialOf(signers.account1.address).hash,
+			],
+		},
 		bridgeTokenName: "BridgeToken"
 	};
 	console.log("[INFO] Initial Configuration", deployConfig);
 
 	// initialize and submit MultiSigCert NFT with Datums
-	lucid.selectWalletFromPrivateKey(signers.account1.privateKey);
+	lucid.selectWalletFromSeed(signers.account1.seedPhrase);
 	const deployments = await multisig_deploy.submit(lucid, deployConfig);
 
 	const scripts = deployments.scripts;
@@ -128,7 +129,7 @@ export const run = async () => {
 	const updateTx = await multisig_update.build(lucid, configUpdate);
 
 	// Select original signer to witness the tx
-	lucid.selectWalletFromPrivateKey(signers.account1.privateKey);
+	lucid.selectWalletFromSeed(signers.account1.seedPhrase);
 	const witness1 = await multisig_update.signWitness(
 		lucid,
 		updateTx.toString()
@@ -193,10 +194,9 @@ export const run = async () => {
 			lucid.utils.paymentCredentialOf(signers.account12.address).hash,
 			lucid.utils.paymentCredentialOf(signers.account13.address).hash,
 		],
-		bridgeTokenName: "BridgeToken"
 	};
 
-	lucid.selectWalletFromPrivateKey(signers.account11.privateKey);
+	lucid.selectWalletFromSeed(signers.account11.seedPhrase);
 
 	const fulfillTx = await multisig_fullfill.build(
 		lucid,
@@ -204,19 +204,19 @@ export const run = async () => {
 		configSign
 	);
 
-	lucid.selectWalletFromPrivateKey(signers.account11.privateKey);
+	lucid.selectWalletFromSeed(signers.account11.seedPhrase);
 	const witness11 = await multisig_fullfill.signWitness(
 		lucid,
 		fulfillTx.toString()
 	);
 
-	lucid.selectWalletFromPrivateKey(signers.account12.privateKey);
+	lucid.selectWalletFromSeed(signers.account12.seedPhrase);
 	const witness12 = await multisig_fullfill.signWitness(
 		lucid,
 		fulfillTx.toString()
 	);
 
-	lucid.selectWalletFromPrivateKey(signers.account13.privateKey);
+	lucid.selectWalletFromSeed(signers.account13.seedPhrase);
 	const witness13 = await multisig_fullfill.signWitness(
 		lucid,
 		fulfillTx.toString()
@@ -251,7 +251,7 @@ export const run = async () => {
 	emulator.awaitBlock(4);
 
 	console.log(
-		`[INFO] Burnt ${burnAmount} BridgeToken at user wallet: `,
+		`[INFO] Burned ${burnAmount} BridgeToken at user wallet: `,
 		await lucid.wallet.getUtxos()
 	);
 };

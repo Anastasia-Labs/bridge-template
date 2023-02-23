@@ -14,6 +14,7 @@ import {
 	Constr,
 	SpendingValidator,
 	toText,
+	fromText,
 } from "lucid-cardano";
 import { AnyDatumUTXO, ValidDatumUTXO, DeployedScripts } from "./types";
 
@@ -96,7 +97,7 @@ export const getValidDatums = async (
 		const datumAsData: any = Data.from(datumCbor);
 
 		const bridgeAmount = datumAsData.fields[0];
-		const btcAddress = toText(datumAsData.fields[1]);
+		const otherChainAddress = toText(datumAsData.fields[1]);
 		const paymentCredentialHash: string =
 			datumAsData.fields[2]?.fields[0]?.fields[0];
 		const stakeCredentialHash: string =
@@ -106,7 +107,7 @@ export const getValidDatums = async (
 			paymentCredentialHash &&
 			stakeCredentialHash &&
 			bridgeAmount &&
-			btcAddress
+			otherChainAddress
 		) {
 			const paymentCredential: Credential = lucid.utils.keyHashToCredential(
 				paymentCredentialHash
@@ -117,7 +118,7 @@ export const getValidDatums = async (
 
 			const readableDatum = {
 				bridgeAmount: bridgeAmount,
-				btcAddress: btcAddress,
+				otherChainAddress: otherChainAddress,
 				cardanoAddress: lucid.utils.credentialToAddress(
 					paymentCredential,
 					stakeCredential
@@ -163,7 +164,8 @@ export const buildScripts = (
 	lucid: Lucid,
 	key: KeyHash,
 	txHash: TxHash,
-	outputIndex: number
+	outputIndex: number,
+	bridgeTokenName: string,
 ) => {
 	const multiSigMintingPolicy: MintingPolicy = {
 		type: "PlutusV2",
@@ -177,15 +179,15 @@ export const buildScripts = (
 	const guardianValidator: SpendingValidator = {
 		type: "PlutusV2",
 		script: applyParamsToScript(validators.guardianValidator.script, [
-			lucid.utils.validatorToScriptHash(validators.multiSigValidator),
-			lucid.utils.mintingPolicyToId(multiSigMintingPolicy),
+			lucid.utils.validatorToScriptHash(validators.multiSigValidator), // (PAsData PScriptHash)
+			lucid.utils.mintingPolicyToId(multiSigMintingPolicy), // (PAsData PCurrencySymbol)
 		]),
 	};
-	//TODO: Add TokenName as parameter
 	const wrapMintingPolicy: MintingPolicy = {
 		type: "PlutusV2",
 		script: applyParamsToScript(validators.wrapMintingPolicy.script, [
-			lucid.utils.validatorToScriptHash(guardianValidator),
+			fromText(bridgeTokenName), // (PAsData PTokenName)
+			lucid.utils.validatorToScriptHash(guardianValidator), // (PAsData PScriptHash)
 		]),
 	};
 
