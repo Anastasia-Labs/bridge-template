@@ -7,7 +7,7 @@ interface Props {
 
 const Button = (props: Props) => (
 	<button
-		className="btn btn-outline btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg m-5"
+		className="btn btn-outline btn-secondary btn-xs sm:btn-sm md:btn-md lg:btn-lg m-5"
 		onClick={props.onClick}
 	>
 		{props.text}
