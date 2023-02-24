@@ -23,6 +23,7 @@ export const Emulator = ({ lucid }: Props) => {
 
 	const handleClick3 = async () => {
 		await runEmulator.run();
+		await runEmulator.run2();
 	};
 
 	return (

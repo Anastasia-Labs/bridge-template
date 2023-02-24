@@ -2,11 +2,7 @@ import { Lucid } from "lucid-cardano";
 import * as multisig_update from "../multisig.update";
 import * as multisig_deploy from "../multisig.deploy";
 import * as multisig_fullfill from "../multisig.fullfill";
-import {
-	ConfigDeploy,
-	ConfigFullFill,
-	ConfigUpdateMultiSig,
-} from "../types";
+import { ConfigDeploy, ConfigFullFill, ConfigUpdateMultiSig } from "../types";
 import * as utils from "../utils";
 import * as user_request from "../user.request";
 import * as user_burn from "../user.burn";
@@ -17,29 +13,40 @@ import { deployments } from "../config.deployment";
 //TODO: generate new addresses
 const signers = {
 	account1: {
-		"seedPhrase": "skate brand slam wild mandate heart pear amateur fun slim trade human few budget narrow ketchup inject twenty real scrub universe credit company weather",
-		"address": "addr_test1qqhrq24gqc3h32tgpuu4qra35fc00hnxlpgzxkalnztspypk9r2y02k9p3e8ppvkap2dhwwdpsy0vuw2epds9ks9qcrs4chlcv"
+		seedPhrase:
+			"skate brand slam wild mandate heart pear amateur fun slim trade human few budget narrow ketchup inject twenty real scrub universe credit company weather",
+		address:
+			"addr_test1qqhrq24gqc3h32tgpuu4qra35fc00hnxlpgzxkalnztspypk9r2y02k9p3e8ppvkap2dhwwdpsy0vuw2epds9ks9qcrs4chlcv",
 	}, // 100
 	account2: {
-		"seedPhrase": "kiwi also magnet slow produce grocery snap twelve sense orphan settle viable math cart struggle enter pumpkin phrase census kingdom conduct furnace sock indicate",
-		"address": "addr_test1qqwmxeh3m74gn96qlwelpe6vv4a5cwf0fnhtam7pvxashdcq5vqwypzque3gpzwjz9pvgqaacx6uxpch5zvhjejar0aslqm5ky"
+		seedPhrase:
+			"kiwi also magnet slow produce grocery snap twelve sense orphan settle viable math cart struggle enter pumpkin phrase census kingdom conduct furnace sock indicate",
+		address:
+			"addr_test1qqwmxeh3m74gn96qlwelpe6vv4a5cwf0fnhtam7pvxashdcq5vqwypzque3gpzwjz9pvgqaacx6uxpch5zvhjejar0aslqm5ky",
 	}, // 100
 	account3: {
-		"seedPhrase": "fix throw field maximum come husband midnight title hurry effort tribe dice state popular hood admit fruit fancy escape seven seminar monitor edge seat",
-		"address": "addr_test1qp09add6x38jra9v4ds2e8jghxxv7tddjzrupfccq9tmnyfla6m9efnctxpr2puduz0vze3wmycvnlweuna72srtz8kscx0cz0"
-	}
-	, // 100
+		seedPhrase:
+			"fix throw field maximum come husband midnight title hurry effort tribe dice state popular hood admit fruit fancy escape seven seminar monitor edge seat",
+		address:
+			"addr_test1qp09add6x38jra9v4ds2e8jghxxv7tddjzrupfccq9tmnyfla6m9efnctxpr2puduz0vze3wmycvnlweuna72srtz8kscx0cz0",
+	}, // 100
 	account11: {
-		"seedPhrase": "arrange couch steak capable other fee behind bitter napkin company enough street risk token betray sword tragic oxygen bag abandon dose million puppy tooth",
-		"address": "addr_test1qzqh5kd70uaqejtfl0rp358tnq2thhr4p6v36uytd5vfv2y2hlhjrn285k4dz0v2te74jszsvsgjcaf7a6nwyeyu5p4qqm9q5t"
+		seedPhrase:
+			"arrange couch steak capable other fee behind bitter napkin company enough street risk token betray sword tragic oxygen bag abandon dose million puppy tooth",
+		address:
+			"addr_test1qzqh5kd70uaqejtfl0rp358tnq2thhr4p6v36uytd5vfv2y2hlhjrn285k4dz0v2te74jszsvsgjcaf7a6nwyeyu5p4qqm9q5t",
 	}, // 100
 	account12: {
-		"seedPhrase": "grocery title weather describe issue spray group sell hurdle unfold spell puppy together witness uncle carpet property piano defense people hospital employ hedgehog wait",
-		"address": "addr_test1qzmjwzml7w9f5m9wa0gqaavxzpj2zjz4k4njp4wtknjcyrg704nf5ntez8hyyp2yjw539sk5y4zy8293phn42kpddjmq3yl00s"
+		seedPhrase:
+			"grocery title weather describe issue spray group sell hurdle unfold spell puppy together witness uncle carpet property piano defense people hospital employ hedgehog wait",
+		address:
+			"addr_test1qzmjwzml7w9f5m9wa0gqaavxzpj2zjz4k4njp4wtknjcyrg704nf5ntez8hyyp2yjw539sk5y4zy8293phn42kpddjmq3yl00s",
 	}, // 100
 	account13: {
-		"seedPhrase": "comfort main buyer rhythm glow wink evidence gap yard clump prepare ghost mandate sunset keep elegant mass victory fox skate merry lady melody degree",
-		"address": "addr_test1qrl55qj5w82zrh4ewyw0hrkjr4lfa5je7j8hfldxcmklkun5vmvmtj6wl74q236ja9nt03mjspj5hkjhp49edu70g2wqrx4n50"
+		seedPhrase:
+			"comfort main buyer rhythm glow wink evidence gap yard clump prepare ghost mandate sunset keep elegant mass victory fox skate merry lady melody degree",
+		address:
+			"addr_test1qrl55qj5w82zrh4ewyw0hrkjr4lfa5je7j8hfldxcmklkun5vmvmtj6wl74q236ja9nt03mjspj5hkjhp49edu70g2wqrx4n50",
 	}, //100
 };
 
@@ -47,8 +54,10 @@ const signers = {
 // These account have StakingCredential
 const user = {
 	account1: {
-		"seedPhrase": "puzzle mouse invest develop donor popular absent else discover crisp always nuclear toy sting trigger wheel east health into energy again nerve spring buyer",
-		"address": "addr_test1qq7wyy8jpzr39unkaal4n5pp2fy046mndst8gkvpaq8rpgj27qvf8nlk7640flpq6rydke3n0mgnuve4fqgj5ul8xuhq3zg8p5"
+		seedPhrase:
+			"puzzle mouse invest develop donor popular absent else discover crisp always nuclear toy sting trigger wheel east health into energy again nerve spring buyer",
+		address:
+			"addr_test1qq7wyy8jpzr39unkaal4n5pp2fy046mndst8gkvpaq8rpgj27qvf8nlk7640flpq6rydke3n0mgnuve4fqgj5ul8xuhq3zg8p5",
 	},
 };
 
@@ -187,7 +196,7 @@ export const request = async (lucid: Lucid) => {
 	const result = await user_request.submit(
 		lucid,
 		bridgeAmount,
-		myAddress,
+		lucid.utils.credentialToAddress(lucid.utils.paymentCredentialOf(myAddress)),
 		otherChainAddress,
 		deployments.scripts.guardianValidator
 	);
@@ -203,7 +212,7 @@ export const burn = async (lucid: Lucid) => {
 		burnAmount,
 		otherChainAddress,
 		deployments.scripts.wrapMintingPolicy,
-		deployments.units.bridgeToken,
+		deployments.units.bridgeToken
 	);
 	console.log(result);
 };

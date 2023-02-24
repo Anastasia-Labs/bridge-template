@@ -18,6 +18,7 @@ import {
 } from "lucid-cardano";
 import { AnyDatumUTXO, ValidDatumUTXO, DeployedScripts } from "./types";
 
+// TODO: WIP update function
 export const getAllDatums = async (
 	lucid: Lucid,
 	guardianValApplied: Script
@@ -80,7 +81,6 @@ export const getAllDatums = async (
 	return datumUtxoList;
 };
 
-// Only Address with Staking Credential is supported
 //TODO: Maybe consider using TypeBox or Zod for safety data validation
 export const getValidDatums = async (
 	lucid: Lucid,
@@ -100,14 +100,16 @@ export const getValidDatums = async (
 		const otherChainAddress = toText(datumAsData.fields[1]);
 		const paymentCredentialHash: string =
 			datumAsData.fields[2]?.fields[0]?.fields[0];
+		// return staking credential hash if exits, otherwise returns undefined
 		const stakeCredentialHash: string =
 			datumAsData.fields[2]?.fields[1]?.fields[0]?.fields[0]?.fields[0];
 
+		//Only allow stakeCredentialHash with hash or undefined
 		if (
 			paymentCredentialHash &&
-			stakeCredentialHash &&
 			bridgeAmount &&
-			otherChainAddress
+			otherChainAddress &&
+			stakeCredentialHash !== ""
 		) {
 			const paymentCredential: Credential = lucid.utils.keyHashToCredential(
 				paymentCredentialHash
@@ -116,13 +118,14 @@ export const getValidDatums = async (
 			const stakeCredential: Credential =
 				lucid.utils.keyHashToCredential(stakeCredentialHash);
 
+			const cardanoAddress = stakeCredentialHash
+				? lucid.utils.credentialToAddress(paymentCredential, stakeCredential)
+				: lucid.utils.credentialToAddress(paymentCredential);
+
 			const readableDatum = {
 				bridgeAmount: bridgeAmount,
 				otherChainAddress: otherChainAddress,
-				cardanoAddress: lucid.utils.credentialToAddress(
-					paymentCredential,
-					stakeCredential
-				), // Convert to Bech32 Address
+				cardanoAddress: cardanoAddress,
 			};
 			const newdata = {
 				datum: readableDatum,
@@ -165,7 +168,7 @@ export const buildScripts = (
 	key: KeyHash,
 	txHash: TxHash,
 	outputIndex: number,
-	bridgeTokenName: string,
+	bridgeTokenName: string
 ) => {
 	const multiSigMintingPolicy: MintingPolicy = {
 		type: "PlutusV2",
