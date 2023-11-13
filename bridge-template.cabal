@@ -30,7 +30,6 @@ common lang
     -fprint-explicit-foralls -fprint-explicit-kinds -Wunused-do-bind
 
   default-extensions:
-    NoFieldSelectors
     NoStarIsType
     BangPatterns
     BinaryLiterals
@@ -70,7 +69,6 @@ common lang
     NamedWildCards
     NumericUnderscores
     OverloadedLabels
-    OverloadedRecordDot
     OverloadedStrings
     PackageImports
     PartialTypeSignatures
@@ -90,6 +88,8 @@ common lang
     TypeSynonymInstances
     UndecidableInstances
     ViewPatterns
+    NoFieldSelectors
+    OverloadedRecordDot
 
   default-language:   GHC2021
 
@@ -109,7 +109,6 @@ common dependencies
     , plutarch-extra
     , plutus-core
     , plutus-ledger-api
-    , plutus-simple-model
     , plutus-tx
     , ply-core
     , ply-plutarch

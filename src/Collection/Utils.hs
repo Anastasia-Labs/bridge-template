@@ -140,7 +140,7 @@ pfirstTokenName = phoistAcyclic $
 phasInput :: Term s (PBuiltinList PTxInInfo :--> PTxOutRef :--> PBool)
 phasInput = phoistAcyclic $ plam $ \refs oref -> pany # plam (\oref' -> oref #== pfield @"outRef" # oref') # refs
 
-(#>) :: POrd t => Term s t -> Term s t -> Term s PBool
+(#>) :: (POrd t) => Term s t -> Term s t -> Term s PBool
 a #> b = b #< a
 
 infix 4 #>

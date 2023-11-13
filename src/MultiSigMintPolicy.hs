@@ -5,10 +5,10 @@ module MultiSigMintPolicy (policy) where
 import MultiSigValidator (PMultisigDatum)
 import Plutarch.Api.V2 (PMintingPolicy, POutputDatum (POutputDatum), PPubKeyHash, PScriptHash, PScriptPurpose (PMinting), PTxOutRef)
 import Plutarch.DataRepr (DerivePConstantViaData (DerivePConstantViaData))
-import "liqwid-plutarch-extra" Plutarch.Extra.ScriptContext (pfromPDatum)
 import Plutarch.Lift (PConstantDecl, PUnsafeLiftDecl (PLifted))
 import Plutarch.Prelude
 import PlutusTx qualified
+import "liqwid-plutarch-extra" Plutarch.Extra.ScriptContext (pfromPDatum)
 
 import Collection.Utils (paysToCredential, phasInput, pheadSingleton, pnegativeSymbolValueOf, ppositiveSymbolValueOf)
 import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC)

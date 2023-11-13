@@ -6,9 +6,9 @@ module WrapMintPolicy (policy) where
 import GuardianValidator (PWitnessDatum)
 import Plutarch.Api.V1.Address (PCredential (PPubKeyCredential, PScriptCredential))
 import Plutarch.Api.V2 (PCurrencySymbol, PMintingPolicy, POutputDatum (POutputDatum), PPubKeyHash, PScriptHash, PScriptPurpose (PMinting), PTokenName, PTxOut)
+import Plutarch.Prelude
 import "liqwid-plutarch-extra" Plutarch.Extra.ScriptContext (pfromPDatum)
 import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC, ptraceC, ptryFromC)
-import Plutarch.Prelude
 
 import Collection.Utils (paysToCredential, pheadSingleton, pnegativeSymbolValueOf, ppositiveSymbolValueOf, (#>))
 import Plutarch.Api.V1.Value (pvalueOf)
