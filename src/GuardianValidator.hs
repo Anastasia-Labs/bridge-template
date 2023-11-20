@@ -20,8 +20,8 @@ import PlutusLedgerApi.V2 (Address, BuiltinByteString, CurrencySymbol, ScriptHas
 import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC)
 
 data WitnessDatum = WitnessDatum
-  { btcSent :: Integer
-  , btcAddress :: BuiltinByteString
+  { wrapSent :: Integer
+  , wrapAddress :: BuiltinByteString
   , adaAddr :: Address
   }
   deriving stock (Generic, Show)
