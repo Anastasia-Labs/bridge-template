@@ -3,17 +3,16 @@
 
 module WrapMintPolicy (policy) where
 
+import Collection.Utils (paysToCredential, pheadSingleton, pnegativeSymbolValueOf, ppositiveSymbolValueOf, (#>))
 import GuardianValidator (PWitnessDatum)
 import Plutarch.Api.V1.Address (PCredential (PPubKeyCredential, PScriptCredential))
+import Plutarch.Api.V1.Value (pvalueOf)
 import Plutarch.Api.V2 (PCurrencySymbol, PMintingPolicy, POutputDatum (POutputDatum), PPubKeyHash, PScriptHash, PScriptPurpose (PMinting), PTokenName, PTxOut)
-import Plutarch.Prelude
 import "liqwid-plutarch-extra" Plutarch.Extra.ScriptContext (pfromPDatum)
 import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC, ptraceC, ptryFromC)
+import Plutarch.Prelude
 
-import Collection.Utils (paysToCredential, pheadSingleton, pnegativeSymbolValueOf, ppositiveSymbolValueOf, (#>))
-import Plutarch.Api.V1.Value (pvalueOf)
-
-data PMintBTCParameters (s :: S) = PMintBTCParameters
+newtype PMintBTCParameters (s :: S) = PMintBTCParameters
   { pguardianVH :: Term s PScriptHash
   -- , pmultisigCert :: Term s PCurrencySymbol
   }
@@ -44,7 +43,7 @@ paysAmountToPkh = phoistAcyclic $
           PScriptCredential _ -> pcon PFalse
     pure result
 
-policy :: Term s ((PAsData PTokenName) :--> (PAsData PScriptHash) :--> PMintingPolicy)
+policy :: Term s (PAsData PTokenName :--> PAsData PScriptHash :--> PMintingPolicy)
 policy = phoistAcyclic $ plam $ \bridgeTn guardianValHash redeemer' ctx -> unTermCont $ do
   ctxF <- pletFieldsC @'["purpose", "txInfo"] ctx
   infoF <- pletFieldsC @'["inputs", "outputs", "mint"] ctxF.txInfo
@@ -63,7 +62,7 @@ policy = phoistAcyclic $ plam $ \bridgeTn guardianValHash redeemer' ctx -> unTer
                     plam
                       ( \txinp ->
                           pletFields @'["resolved"] txinp $ \txInFields ->
-                            paysToCredential # (pfromData guardianValHash) # txInFields.resolved
+                            paysToCredential # pfromData guardianValHash # txInFields.resolved
                       )
               guardianInput <- pletC $ pheadSingleton #$ pfilter # isGuardianInp # pfromData infoF.inputs
               guardianInputF <- pletFieldsC @["address", "value", "datum"] (pfield @"resolved" # guardianInput)
@@ -75,7 +74,7 @@ policy = phoistAcyclic $ plam $ \bridgeTn guardianValHash redeemer' ctx -> unTer
               ptraceC (pshow cardanoPKH) -- TODO: remove this
               pure $
                 ptraceIfFalse "WrapMintPolicy f1" (mintedCS #== gbridgeAmt)
-                  #&& ptraceIfFalse "WrapMintPolicy f2" (pany # (paysAmountToPkh # (pfromData bridgeTn) # gbridgeAmt # ownPolicyId # cardanoPKH) # pfromData infoF.outputs)
+                  #&& ptraceIfFalse "WrapMintPolicy f2" (pany # (paysAmountToPkh # pfromData bridgeTn # gbridgeAmt # ownPolicyId # cardanoPKH) # pfromData infoF.outputs)
                   #&& ptraceIfFalse "WrapMintPolicy f3" (burnedCS #== 0)
             PBurnBTC _ ->
               ptraceIfFalse "WrapMintPolicy f4" (mintedCS #== 0)

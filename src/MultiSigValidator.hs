@@ -1,27 +1,25 @@
 module MultiSigValidator (validator, PMultisigDatum (PMultisigDatum)) where
 
-import Plutarch.Api.V2 (
-  POutputDatum (POutputDatum),
-  PPubKeyHash,
-  PScriptPurpose (PSpending),
-  PValidator,
- )
-
-import "liqwid-plutarch-extra" Plutarch.Extra.ScriptContext (pfromPDatum)
-import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC, ptryFromC)
-
 import Collection.Utils (paysToCredential, pheadSingleton, ptryOwnInput, pvalueContains, (#>), (#>=))
 import Plutarch.Api.V1.Address (PCredential (PScriptCredential))
+import Plutarch.Api.V2
+  ( POutputDatum (POutputDatum),
+    PPubKeyHash,
+    PScriptPurpose (PSpending),
+    PValidator,
+  )
 import Plutarch.DataRepr (PDataFields)
+import "liqwid-plutarch-extra" Plutarch.Extra.ScriptContext (pfromPDatum)
+import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC, ptryFromC)
 import Plutarch.Prelude
 
-data PMultisigDatum (s :: S)
+newtype PMultisigDatum (s :: S)
   = PMultisigDatum
       ( Term
           s
           ( PDataRecord
-              '[ "keys" ':= PBuiltinList (PAsData PPubKeyHash)
-               , "requiredCount" ':= PInteger
+              '[ "keys" ':= PBuiltinList (PAsData PPubKeyHash),
+                 "requiredCount" ':= PInteger
                ]
           )
       )
@@ -89,19 +87,18 @@ validator = phoistAcyclic $ plam $ \dat' redeemer' ctx -> unTermCont $ do
       pif
         ( ptraceIfFalse "MultiSigValidator f1" (psignedByAMajority # datF.keys # datF.requiredCount # txInfoFields.signatories)
             #&& ptraceIfFalse "MultiSigValidator f2" (pvalueContains # ownOutputFields.value # ownInputFields.value)
-            #&& ( pmatch
-                    redeemer
-                    ( \case
-                        PUpdate _ ->
-                          pletFields @'["keys", "requiredCount"] ownOutputDatum $ \newDatumF ->
-                            plet (plength # pfromData newDatumF.keys) $ \newKeyCount ->
-                              ptraceIfFalse "MultiSigValidator f3" (newKeyCount #> 0)
-                                #&& ptraceIfFalse "MultiSigValidator f4" (pfromData newDatumF.requiredCount #> 0)
-                                #&& ptraceIfFalse "MultiSigValidator f5" (pfromData newDatumF.requiredCount #<= newKeyCount)
-                                #&& ptraceIfFalse "MultiSigValidator f6" (pnoDuplicates # pfromData newDatumF.keys)
-                        PSign _ -> ptraceIfFalse "MultiSigValidator f7" (dat #== ownOutputDatum)
-                    )
-                )
+            #&& pmatch
+              redeemer
+              ( \case
+                  PUpdate _ ->
+                    pletFields @'["keys", "requiredCount"] ownOutputDatum $ \newDatumF ->
+                      plet (plength # pfromData newDatumF.keys) $ \newKeyCount ->
+                        ptraceIfFalse "MultiSigValidator f3" (newKeyCount #> 0)
+                          #&& ptraceIfFalse "MultiSigValidator f4" (pfromData newDatumF.requiredCount #> 0)
+                          #&& ptraceIfFalse "MultiSigValidator f5" (pfromData newDatumF.requiredCount #<= newKeyCount)
+                          #&& ptraceIfFalse "MultiSigValidator f6" (pnoDuplicates # pfromData newDatumF.keys)
+                  PSign _ -> ptraceIfFalse "MultiSigValidator f7" (dat #== ownOutputDatum)
+              )
         )
         (pconstant ())
         perror
