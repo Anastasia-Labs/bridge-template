@@ -12,12 +12,12 @@ import PlutusTx qualified
 
 import Collection.Utils (paysToCredential, pheadSingleton, ppositiveSymbolValueOf, ptryOwnInput, (#>))
 import Plutarch.Api.V1.Address (PCredential (PScriptCredential))
-import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC)
 import Plutarch.Lift (
   PConstantDecl,
   PUnsafeLiftDecl (PLifted),
  )
 import PlutusLedgerApi.V2 (Address, BuiltinByteString, CurrencySymbol, ScriptHash)
+import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC)
 
 data WitnessDatum = WitnessDatum
   { btcSent :: Integer
