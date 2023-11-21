@@ -5,6 +5,7 @@ module Utils (
   phasScriptHash,
   writePlutusScript,
   compileD,
+  mkScriptHashV2,
 ) where
 
 import Data.Bifunctor (
@@ -20,7 +21,7 @@ import Plutarch (
   compile,
  )
 import Plutarch.Api.V1.Address (PCredential (PPubKeyCredential, PScriptCredential))
-import Plutarch.Api.V2 (AmountGuarantees, KeyGuarantees, PMap (PMap), PScriptHash, PTxInInfo, PValue (PValue))
+import Plutarch.Api.V2 (AmountGuarantees, KeyGuarantees, PMap (PMap), PScriptHash, PTxInInfo, PValue (PValue), scriptHash)
 import Plutarch.Evaluate (
   evalScript,
  )
@@ -34,6 +35,7 @@ import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pmatchC)
 import PlutusLedgerApi.V2 (
   Data,
   ExBudget,
+  ScriptHash,
  )
 
 import Cardano.Binary qualified as CBOR
@@ -41,6 +43,7 @@ import Data.Aeson (KeyValue ((.=)), object)
 import Data.Aeson.Encode.Pretty (encodePretty)
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Lazy qualified as LBS
+import Data.Either (fromRight)
 import Data.Text.Encoding qualified as Text
 import Plutarch.Script (Script, serialiseScript)
 
@@ -79,6 +82,11 @@ compileD x =
   case evalT x of
     Left e -> error (show e)
     Right (a, _, _) -> a
+
+mkScriptHashV2 :: ClosedTerm a -> ScriptHash
+mkScriptHashV2 closedTerm = scriptHash script
+  where
+    (script, _, _) = fromRight (error "error") $ evalT closedTerm
 
 {- Note:
 plength $ pto $ pto $ pto txInfo.mint == 1

@@ -117,25 +117,15 @@ common dependencies
 
 common test-dependencies
   build-depends:
-    , aeson-pretty
-    , base
-    , bytestring
     , hedgehog
     , hedgehog-quickcheck
-    , liqwid-plutarch-extra
-    , plutarch
     , plutarch-context-builder
-    , plutarch-extra
     , plutarch-quickcheck
     , plutarch-unit
-    , plutus-core
-    , plutus-ledger-api
-    , plutus-tx
     , tasty
     , tasty-hedgehog
     , tasty-hunit
     , text
-    , uuid
 
 library
   import:          lang, dependencies
@@ -152,22 +142,16 @@ library
 executable bridge-template
   import:         lang, dependencies
   main-is:        Main.hs
-
-  -- Modules included in this executable, other than Main.
-  -- other-modules:
-
-  -- LANGUAGE extensions used by modules in this package.
-  -- other-extensions:
   build-depends:  bridge-template
   hs-source-dirs: app
 
--- test-suite bridge-template-test
---   import:         lang, test-dependencies
---   type:           exitcode-stdio-1.0
---   main-is:        Spec.hs
---   hs-source-dirs: test
---   other-modules:
---     Spec.GuardianValidatorSpec
---     Spec.MintCBTCSpec
+test-suite bridge-template-test
+  import:         lang, dependencies, test-dependencies
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test
+  other-modules:
+    Spec.GuardianValidatorSpec
+    Spec.MintWrapSpec
 
---   build-depends:  bridge-template
+  build-depends:  bridge-template

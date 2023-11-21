@@ -31,6 +31,6 @@ main = do
     GuardianValidator.validator
 
   writePlutusScript
-    "CBTC Minting Policy"
+    "Wrap Minting Policy"
     "./compiled/wrapMintingPolicy.plutus"
     WrapMintPolicy.policy

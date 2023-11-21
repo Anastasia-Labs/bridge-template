@@ -13,26 +13,26 @@ import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmat
 import Collection.Utils (paysToCredential, pheadSingleton, pnegativeSymbolValueOf, ppositiveSymbolValueOf, (#>))
 import Plutarch.Api.V1.Value (pvalueOf)
 
-data PMintBTCParameters (s :: S) = PMintBTCParameters
+data PMintWRAPParameters (s :: S) = PMintWRAPParameters
   { pguardianVH :: Term s PScriptHash
   -- , pmultisigCert :: Term s PCurrencySymbol
   }
   deriving stock (Generic)
   deriving anyclass (PlutusType, PShow)
 
-instance DerivePlutusType PMintBTCParameters where
+instance DerivePlutusType PMintWRAPParameters where
   type DPTStrat _ = PlutusTypeScott
 
-data PMintBTCAction (s :: S)
-  = PMintBTC (Term s (PDataRecord '[]))
-  | PBurnBTC (Term s (PDataRecord '[]))
+data PMintWRAPAction (s :: S)
+  = PMintWRAP (Term s (PDataRecord '[]))
+  | PBurnWRAP (Term s (PDataRecord '[]))
   deriving stock (Generic)
   deriving anyclass (PlutusType, PIsData, PShow)
 
-instance DerivePlutusType PMintBTCAction where
+instance DerivePlutusType PMintWRAPAction where
   type DPTStrat _ = PlutusTypeData
 
-instance PTryFrom PData PMintBTCAction
+instance PTryFrom PData PMintWRAPAction
 
 paysAmountToPkh :: Term s (PTokenName :--> PInteger :--> PCurrencySymbol :--> PPubKeyHash :--> PTxOut :--> PBool)
 paysAmountToPkh = phoistAcyclic $
@@ -53,12 +53,12 @@ policy = phoistAcyclic $ plam $ \bridgeTn guardianValHash redeemer' ctx -> unTer
 
   mintedCS <- pletC $ ppositiveSymbolValueOf # ownPolicyId # infoF.mint
   burnedCS <- pletC $ pnegativeSymbolValueOf # ownPolicyId # infoF.mint
-  redeemer <- fst <$> ptryFromC @PMintBTCAction redeemer'
+  redeemer <- fst <$> ptryFromC @PMintWRAPAction redeemer'
   pure $
     popaque $
       pif
         ( pmatch redeemer $ \case
-            PMintBTC _ -> unTermCont $ do
+            PMintWRAP _ -> unTermCont $ do
               let isGuardianInp =
                     plam
                       ( \txinp ->
@@ -77,7 +77,7 @@ policy = phoistAcyclic $ plam $ \bridgeTn guardianValHash redeemer' ctx -> unTer
                 ptraceIfFalse "WrapMintPolicy f1" (mintedCS #== gbridgeAmt)
                   #&& ptraceIfFalse "WrapMintPolicy f2" (pany # (paysAmountToPkh # (pfromData bridgeTn) # gbridgeAmt # ownPolicyId # cardanoPKH) # pfromData infoF.outputs)
                   #&& ptraceIfFalse "WrapMintPolicy f3" (burnedCS #== 0)
-            PBurnBTC _ ->
+            PBurnWRAP _ ->
               ptraceIfFalse "WrapMintPolicy f4" (mintedCS #== 0)
                 #&& ptraceIfFalse "WrapMintPolicy f5" (burnedCS #< 0)
         )
