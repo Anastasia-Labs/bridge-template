@@ -1,47 +1,47 @@
-module Utils
-  ( evalT,
-    evalSerialize,
-    phasOneCurrecySymbolOneTokenName,
-    phasScriptHash,
-    writePlutusScript,
-    compileD,
-  )
+module Utils (
+  evalT,
+  evalSerialize,
+  phasOneCurrecySymbolOneTokenName,
+  phasScriptHash,
+  writePlutusScript,
+  compileD,
+)
 where
 
 import Cardano.Binary qualified as CBOR
 import Data.Aeson (KeyValue ((.=)), object)
 import Data.Aeson.Encode.Pretty (encodePretty)
-import Data.Bifunctor
-  ( first,
-  )
+import Data.Bifunctor (
+  first,
+ )
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Lazy qualified as LBS
-import Data.Text
-  ( Text,
-    pack,
-  )
+import Data.Text (
+  Text,
+  pack,
+ )
 import Data.Text.Encoding qualified as Text
-import Plutarch
-  ( Config (Config),
-    TracingMode (DoTracing),
-    compile,
-  )
+import Plutarch (
+  Config (Config),
+  TracingMode (DoTracing),
+  compile,
+ )
 import Plutarch.Api.V1.Address (PCredential (PPubKeyCredential, PScriptCredential))
 import Plutarch.Api.V2 (AmountGuarantees, KeyGuarantees, PMap (PMap), PScriptHash, PTxInInfo, PValue (PValue))
-import Plutarch.Evaluate
-  ( evalScript,
-  )
-import "liqwid-plutarch-extra" Plutarch.Extra.List (pisSingleton)
-import "liqwid-plutarch-extra" Plutarch.Extra.Script
-  ( applyArguments,
-  )
-import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pmatchC)
+import Plutarch.Evaluate (
+  evalScript,
+ )
 import Plutarch.Prelude
 import Plutarch.Script (Script, serialiseScript)
-import PlutusLedgerApi.V2
-  ( Data,
-    ExBudget,
-  )
+import PlutusLedgerApi.V2 (
+  Data,
+  ExBudget,
+ )
+import "liqwid-plutarch-extra" Plutarch.Extra.List (pisSingleton)
+import "liqwid-plutarch-extra" Plutarch.Extra.Script (
+  applyArguments,
+ )
+import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pmatchC)
 
 evalSerialize :: ClosedTerm a -> Text
 evalSerialize x =
@@ -84,8 +84,9 @@ only checks length of CurrencySymbol, and not TokenName length
 mockCtx3 fails
 -}
 
--- | Returns 'PTrue' if the argument 'PValue' has one 'PCurrencySymbol'
---  and one 'PTokenName', if PValue is not /normalized/ ('PValue' ''Sorted' ''NonZero') it will return 'PFalse'
+{- | Returns 'PTrue' if the argument 'PValue' has one 'PCurrencySymbol'
+ and one 'PTokenName', if PValue is not /normalized/ ('PValue' ''Sorted' ''NonZero') it will return 'PFalse'
+-}
 phasOneCurrecySymbolOneTokenName ::
   forall (keys :: KeyGuarantees) (amounts :: AmountGuarantees) (s :: S).
   Term s (PValue keys amounts :--> PBool)

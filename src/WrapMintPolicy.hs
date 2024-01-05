@@ -1,16 +1,20 @@
-{-# OPTIONS_GHC -Wno-unused-imports #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-module WrapMintPolicy (policy) where
+module WrapMintPolicy (policy, MintBTCAction (..)) where
 
-import Collection.Utils (paysToCredential, pheadSingleton, pnegativeSymbolValueOf, ppositiveSymbolValueOf, (#>))
+import Collection.Utils (paysToCredential, pheadSingleton, pnegativeSymbolValueOf, ppositiveSymbolValueOf)
 import GuardianValidator (PWitnessDatum)
 import Plutarch.Api.V1.Address (PCredential (PPubKeyCredential, PScriptCredential))
 import Plutarch.Api.V1.Value (pvalueOf)
 import Plutarch.Api.V2 (PCurrencySymbol, PMintingPolicy, POutputDatum (POutputDatum), PPubKeyHash, PScriptHash, PScriptPurpose (PMinting), PTokenName, PTxOut)
+import Plutarch.DataRepr (
+  DerivePConstantViaData (DerivePConstantViaData),
+ )
+import Plutarch.Lift (PConstantDecl, PUnsafeLiftDecl (PLifted))
+import Plutarch.Prelude
+import PlutusTx qualified
 import "liqwid-plutarch-extra" Plutarch.Extra.ScriptContext (pfromPDatum)
 import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC, ptraceC, ptryFromC)
-import Plutarch.Prelude
 
 newtype PMintBTCParameters (s :: S) = PMintBTCParameters
   { pguardianVH :: Term s PScriptHash
@@ -22,11 +26,31 @@ newtype PMintBTCParameters (s :: S) = PMintBTCParameters
 instance DerivePlutusType PMintBTCParameters where
   type DPTStrat _ = PlutusTypeScott
 
+data MintBTCAction
+  = MintBTC
+  | BurnBTC
+  deriving stock (Show, Eq, Generic)
+
+PlutusTx.makeIsDataIndexed
+  ''MintBTCAction
+  [ ('MintBTC, 0)
+  , ('BurnBTC, 1)
+  ]
+PlutusTx.makeLift ''MintBTCAction
+
 data PMintBTCAction (s :: S)
   = PMintBTC (Term s (PDataRecord '[]))
   | PBurnBTC (Term s (PDataRecord '[]))
   deriving stock (Generic)
   deriving anyclass (PlutusType, PIsData, PShow)
+
+deriving via
+  (DerivePConstantViaData MintBTCAction PMintBTCAction)
+  instance
+    PConstantDecl MintBTCAction
+
+instance PUnsafeLiftDecl PMintBTCAction where
+  type PLifted PMintBTCAction = MintBTCAction
 
 instance DerivePlutusType PMintBTCAction where
   type DPTStrat _ = PlutusTypeData

@@ -3,6 +3,7 @@ dist-newstyle
 tmp
 .pre-commit-config.yaml
 .direnv
+.direnv/**
 
 front-end/tmp
 

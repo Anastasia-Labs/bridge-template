@@ -161,13 +161,15 @@ executable bridge-template
   build-depends:  bridge-template
   hs-source-dirs: app
 
--- test-suite bridge-template-test
---   import:         lang, test-dependencies
---   type:           exitcode-stdio-1.0
---   main-is:        Spec.hs
---   hs-source-dirs: test
---   other-modules:
---     Spec.GuardianValidatorSpec
---     Spec.MintCBTCSpec
+test-suite bridge-template-test
+  import:         lang, test-dependencies
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test
+  other-modules:
+    Spec.GuardianValidatorSpec
+    Spec.MultiSigMintPolicySpec
+    Spec.MultiSigValidatorSpec
+    Spec.WrapMintPolicySpec
 
---   build-depends:  bridge-template
+  build-depends:  bridge-template

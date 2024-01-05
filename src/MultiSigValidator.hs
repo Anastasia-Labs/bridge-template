@@ -1,41 +1,83 @@
-module MultiSigValidator (validator, PMultisigDatum (PMultisigDatum)) where
+{-# LANGUAGE TemplateHaskell #-}
+
+module MultiSigValidator (
+  validator,
+  PMultisigDatum (PMultisigDatum),
+  MultisigDatum (..),
+  MultisigRedeemer (..),
+) where
 
 import Collection.Utils (paysToCredential, pheadSingleton, ptryOwnInput, pvalueContains, (#>), (#>=))
 import Plutarch.Api.V1.Address (PCredential (PScriptCredential))
-import Plutarch.Api.V2
-  ( POutputDatum (POutputDatum),
-    PPubKeyHash,
-    PScriptPurpose (PSpending),
-    PValidator,
-  )
-import Plutarch.DataRepr (PDataFields)
+import Plutarch.Api.V2 (
+  POutputDatum (POutputDatum),
+  PPubKeyHash,
+  PScriptPurpose (PSpending),
+  PValidator,
+ )
+import Plutarch.DataRepr (
+  DerivePConstantViaData (DerivePConstantViaData),
+  PDataFields,
+ )
+import Plutarch.Lift (PConstantDecl, PUnsafeLiftDecl (PLifted))
+import Plutarch.Prelude
+import PlutusLedgerApi.V2 (PubKeyHash)
+import PlutusTx qualified
 import "liqwid-plutarch-extra" Plutarch.Extra.ScriptContext (pfromPDatum)
 import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC, ptryFromC)
-import Plutarch.Prelude
+
+data MultisigDatum = MultisigDatum
+  { keys :: [PubKeyHash]
+  , requiredCount :: Integer
+  }
+  deriving stock (Generic, Eq, Show)
+
+PlutusTx.makeIsDataIndexed ''MultisigDatum [('MultisigDatum, 0)]
+PlutusTx.makeLift ''MultisigDatum
 
 newtype PMultisigDatum (s :: S)
   = PMultisigDatum
       ( Term
           s
           ( PDataRecord
-              '[ "keys" ':= PBuiltinList (PAsData PPubKeyHash),
-                 "requiredCount" ':= PInteger
+              '[ "keys" ':= PBuiltinList (PAsData PPubKeyHash)
+               , "requiredCount" ':= PInteger
                ]
           )
       )
   deriving stock (Generic)
   deriving anyclass (PlutusType, PIsData, PDataFields, PEq)
-
+instance PUnsafeLiftDecl PMultisigDatum where type PLifted PMultisigDatum = MultisigDatum
+deriving via (DerivePConstantViaData MultisigDatum PMultisigDatum) instance PConstantDecl MultisigDatum
 instance PTryFrom PData PMultisigDatum
-
 instance DerivePlutusType PMultisigDatum where
   type DPTStrat _ = PlutusTypeData
+
+data MultisigRedeemer
+  = Update
+  | Sign
+  deriving stock (Show, Eq, Generic)
+
+PlutusTx.makeIsDataIndexed
+  ''MultisigRedeemer
+  [ ('Update, 0)
+  , ('Sign, 1)
+  ]
+PlutusTx.makeLift ''MultisigRedeemer
 
 data PMultisigRedeemer (s :: S)
   = PUpdate (Term s (PDataRecord '[]))
   | PSign (Term s (PDataRecord '[]))
   deriving stock (Generic)
   deriving anyclass (PlutusType, PIsData, PShow)
+
+deriving via
+  (DerivePConstantViaData MultisigRedeemer PMultisigRedeemer)
+  instance
+    PConstantDecl MultisigRedeemer
+
+instance PUnsafeLiftDecl PMultisigRedeemer where
+  type PLifted PMultisigRedeemer = MultisigRedeemer
 
 instance PTryFrom PData PMultisigRedeemer
 
@@ -62,7 +104,7 @@ psignedByAMajority :: Term s (PBuiltinList (PAsData PPubKeyHash) :--> PInteger :
 psignedByAMajority = phoistAcyclic $ plam $ \allKeys requiredCount signers ->
   plength # (pfilter # plam (\sig -> pelem # sig # allKeys) # signers) #>= requiredCount
 
-validator :: ClosedTerm (PValidator)
+validator :: ClosedTerm PValidator
 validator = phoistAcyclic $ plam $ \dat' redeemer' ctx -> unTermCont $ do
   contextFields <- pletFieldsC @["txInfo", "purpose"] ctx
   PSpending ownRef' <- pmatchC contextFields.purpose

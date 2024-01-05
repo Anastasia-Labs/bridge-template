@@ -1,27 +1,27 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module GuardianValidator (validator, PWitnessDatum (PWitnessDatum), PWitnessParametersD (..)) where
+module GuardianValidator (validator, PWitnessDatum (PWitnessDatum), PWitnessParametersD (..), WitnessDatum (..)) where
 
 import Collection.Utils (paysToCredential, pheadSingleton, ppositiveSymbolValueOf, ptryOwnInput, (#>))
 import Plutarch.Api.V1.Address (PCredential (PScriptCredential))
 import Plutarch.Api.V2 (PAddress, PCurrencySymbol, PScriptHash, PScriptPurpose (PSpending), PTxInInfo, PValidator)
-import Plutarch.DataRepr
-  ( DerivePConstantViaData (DerivePConstantViaData),
-    PDataFields,
-  )
-import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC)
-import Plutarch.Lift
-  ( PConstantDecl,
-    PUnsafeLiftDecl (PLifted),
-  )
+import Plutarch.DataRepr (
+  DerivePConstantViaData (DerivePConstantViaData),
+  PDataFields,
+ )
+import Plutarch.Lift (
+  PConstantDecl,
+  PUnsafeLiftDecl (PLifted),
+ )
 import Plutarch.Prelude
 import PlutusLedgerApi.V2 (Address, BuiltinByteString, CurrencySymbol, ScriptHash)
 import PlutusTx qualified
+import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC)
 
 data WitnessDatum = WitnessDatum
-  { btcSent :: Integer,
-    btcAddress :: BuiltinByteString,
-    adaAddr :: Address
+  { bridgeAmt :: Integer
+  , otherChainAddr :: BuiltinByteString
+  , cardanoPKH :: Address
   }
   deriving stock (Generic, Show)
 
@@ -32,9 +32,9 @@ newtype PWitnessDatum (s :: S)
       ( Term
           s
           ( PDataRecord
-              '[ "bridgeAmt" ':= PInteger,
-                 "otherChainAddr" ':= PByteString,
-                 "cardanoPKH" ':= PAddress
+              '[ "bridgeAmt" ':= PInteger
+               , "otherChainAddr" ':= PByteString
+               , "cardanoPKH" ':= PAddress
                ]
           )
       )
@@ -79,14 +79,14 @@ deriving via
     (PConstantDecl GuardianRedeemer)
 
 data WitnessParameters = WitnessParameters
-  { multisigVH :: ScriptHash,
-    multisigCert :: CurrencySymbol
+  { multisigVH :: ScriptHash
+  , multisigCert :: CurrencySymbol
   }
   deriving stock (Generic, Show)
 
 data PWitnessParameters (s :: S) = PWitnessParameters
-  { pmultisigVH :: Term s PScriptHash,
-    pmultisigCert :: Term s PCurrencySymbol
+  { pmultisigVH :: Term s PScriptHash
+  , pmultisigCert :: Term s PCurrencySymbol
   }
   deriving stock (Generic)
   deriving anyclass (PlutusType, PShow)
@@ -104,8 +104,8 @@ newtype PWitnessParametersD (s :: S)
       ( Term
           s
           ( PDataRecord
-              '[ "multisigVH" ':= PAsData PScriptHash,
-                 "multisigCert" ':= PAsData PCurrencySymbol
+              '[ "multisigVH" ':= PAsData PScriptHash
+               , "multisigCert" ':= PAsData PCurrencySymbol
                ]
           )
       )
