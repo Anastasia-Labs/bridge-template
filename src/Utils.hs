@@ -5,15 +5,22 @@ module Utils (
   phasScriptHash,
   writePlutusScript,
   compileD,
-) where
+)
+where
 
+import Cardano.Binary qualified as CBOR
+import Data.Aeson (KeyValue ((.=)), object)
+import Data.Aeson.Encode.Pretty (encodePretty)
 import Data.Bifunctor (
   first,
  )
+import Data.ByteString.Base16 qualified as Base16
+import Data.ByteString.Lazy qualified as LBS
 import Data.Text (
   Text,
   pack,
  )
+import Data.Text.Encoding qualified as Text
 import Plutarch (
   Config (Config),
   TracingMode (DoTracing),
@@ -25,24 +32,16 @@ import Plutarch.Evaluate (
   evalScript,
  )
 import Plutarch.Prelude
+import Plutarch.Script (Script, serialiseScript)
+import PlutusLedgerApi.V2 (
+  Data,
+  ExBudget,
+ )
 import "liqwid-plutarch-extra" Plutarch.Extra.List (pisSingleton)
 import "liqwid-plutarch-extra" Plutarch.Extra.Script (
   applyArguments,
  )
 import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pmatchC)
-
-import PlutusLedgerApi.V2 (
-  Data,
-  ExBudget,
- )
-
-import Cardano.Binary qualified as CBOR
-import Data.Aeson (KeyValue ((.=)), object)
-import Data.Aeson.Encode.Pretty (encodePretty)
-import Data.ByteString.Base16 qualified as Base16
-import Data.ByteString.Lazy qualified as LBS
-import Data.Text.Encoding qualified as Text
-import Plutarch.Script (Script, serialiseScript)
 
 evalSerialize :: ClosedTerm a -> Text
 evalSerialize x =
@@ -68,10 +67,9 @@ writePlutusScript title filepath term = do
   case evalT term of
     Left e -> putStrLn (show e)
     Right (script, _, _) -> do
-      let
-        scriptType = "PlutusScriptV2" :: String
-        plutusJson = object ["type" .= scriptType, "description" .= title, "cborHex" .= encodeSerialiseCBOR script]
-        content = encodePretty plutusJson
+      let scriptType = "PlutusScriptV2" :: String
+          plutusJson = object ["type" .= scriptType, "description" .= title, "cborHex" .= encodeSerialiseCBOR script]
+          content = encodePretty plutusJson
       LBS.writeFile filepath content
 
 compileD :: ClosedTerm a -> Script
@@ -87,14 +85,14 @@ mockCtx3 fails
 -}
 
 {- | Returns 'PTrue' if the argument 'PValue' has one 'PCurrencySymbol'
-  and one 'PTokenName', if PValue is not /normalized/ ('PValue' ''Sorted' ''NonZero') it will return 'PFalse'
+ and one 'PTokenName', if PValue is not /normalized/ ('PValue' ''Sorted' ''NonZero') it will return 'PFalse'
 -}
 phasOneCurrecySymbolOneTokenName ::
   forall (keys :: KeyGuarantees) (amounts :: AmountGuarantees) (s :: S).
   Term s (PValue keys amounts :--> PBool)
 phasOneCurrecySymbolOneTokenName = plam $ \value' ->
   unTermCont $ do
-    PValue mapValue <- pmatchC $ value'
+    PValue mapValue <- pmatchC value'
     PMap listCS <- pmatchC mapValue
     PMap listTokenAndAmnt <- pmatchC $ pfromData $ psndBuiltin #$ phead # listCS
     pure $

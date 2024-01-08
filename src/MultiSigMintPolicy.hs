@@ -2,6 +2,7 @@
 
 module MultiSigMintPolicy (policy) where
 
+import Collection.Utils (paysToCredential, phasInput, pheadSingleton, pnegativeSymbolValueOf, ppositiveSymbolValueOf)
 import MultiSigValidator (PMultisigDatum)
 import Plutarch.Api.V2 (PMintingPolicy, POutputDatum (POutputDatum), PPubKeyHash, PScriptHash, PScriptPurpose (PMinting), PTxOutRef)
 import Plutarch.DataRepr (DerivePConstantViaData (DerivePConstantViaData))
@@ -9,8 +10,6 @@ import Plutarch.Lift (PConstantDecl, PUnsafeLiftDecl (PLifted))
 import Plutarch.Prelude
 import PlutusTx qualified
 import "liqwid-plutarch-extra" Plutarch.Extra.ScriptContext (pfromPDatum)
-
-import Collection.Utils (paysToCredential, phasInput, pheadSingleton, pnegativeSymbolValueOf, ppositiveSymbolValueOf)
 import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC)
 
 data GuardianMintAction
@@ -35,12 +34,13 @@ instance PUnsafeLiftDecl PGuardianMintAction where
 deriving via (DerivePConstantViaData GuardianMintAction PGuardianMintAction) instance (PConstantDecl GuardianMintAction)
 
 instance PTryFrom PData PGuardianMintAction
+
 instance PTryFrom PData (PAsData PGuardianMintAction)
 
 -- pGuardianSignerPKH :: Term s PPubKeyHash
 -- pGuardianSignerPKH = pconstant (PubKeyHash "01c15871cfb766e1862abfb6eb55e1e9d890e7e8e76ab4f3fef7ae281f")
 
-policy :: Term s ((PAsData PPubKeyHash) :--> (PAsData PScriptHash) :--> PTxOutRef :--> PMintingPolicy)
+policy :: Term s (PAsData PPubKeyHash :--> PAsData PScriptHash :--> PTxOutRef :--> PMintingPolicy)
 policy = phoistAcyclic $
   plam $ \guardianSignerPKH multisigVH oref _ context -> unTermCont $ do
     contextFields <- pletFieldsC @["txInfo", "purpose"] context
@@ -50,7 +50,7 @@ policy = phoistAcyclic $
     mintedRTs <- pletC $ ppositiveSymbolValueOf # ownPolicyId # txInfoFields.mint
     burnedRTs <- pletC $ pnegativeSymbolValueOf # ownPolicyId # txInfoFields.mint
 
-    let msOutput = pheadSingleton # (pfilter # (paysToCredential # (pfromData multisigVH)) # txInfoFields.outputs)
+    let msOutput = pheadSingleton # (pfilter # (paysToCredential # pfromData multisigVH) # txInfoFields.outputs)
     msOutputFields <- pletFieldsC @["value", "datum"] msOutput
 
     POutputDatum msOutputDatum' <- pmatchC msOutputFields.datum
@@ -63,8 +63,8 @@ policy = phoistAcyclic $
         pif
           ( ptraceIfFalse "MultiSigMintPolicy f1" (mintedRTs #== 1)
               #&& ptraceIfFalse "MultiSigMintPolicy f2" (burnedRTs #== 0)
-              #&& ptraceIfFalse "MultiSigMintPolicy f3" (correctDatum)
-              #&& ptraceIfFalse "MultiSigMintPolicy f4" (isUtxoSpent)
+              #&& ptraceIfFalse "MultiSigMintPolicy f3" correctDatum
+              #&& ptraceIfFalse "MultiSigMintPolicy f4" isUtxoSpent
           )
           (pconstant ())
           perror

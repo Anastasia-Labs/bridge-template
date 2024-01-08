@@ -1,33 +1,33 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module GuardianValidator (validator, PWitnessDatum (PWitnessDatum), PWitnessParametersD (..)) where
+module GuardianValidator (validator, PWitnessDatum (PWitnessDatum), PWitnessParametersD (..), WitnessDatum (..)) where
 
+import Collection.Utils (paysToCredential, pheadSingleton, ppositiveSymbolValueOf, ptryOwnInput, (#>))
+import Plutarch.Api.V1.Address (PCredential (PScriptCredential))
 import Plutarch.Api.V2 (PAddress, PCurrencySymbol, PScriptHash, PScriptPurpose (PSpending), PTxInInfo, PValidator)
 import Plutarch.DataRepr (
   DerivePConstantViaData (DerivePConstantViaData),
   PDataFields,
  )
-import Plutarch.Prelude
-import PlutusTx qualified
-
-import Collection.Utils (paysToCredential, pheadSingleton, ppositiveSymbolValueOf, ptryOwnInput, (#>))
-import Plutarch.Api.V1.Address (PCredential (PScriptCredential))
 import Plutarch.Lift (
   PConstantDecl,
   PUnsafeLiftDecl (PLifted),
  )
+import Plutarch.Prelude
 import PlutusLedgerApi.V2 (Address, BuiltinByteString, CurrencySymbol, ScriptHash)
+import PlutusTx qualified
 import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC)
 
 data WitnessDatum = WitnessDatum
-  { btcSent :: Integer
-  , btcAddress :: BuiltinByteString
-  , adaAddr :: Address
+  { bridgeAmt :: Integer
+  , otherChainAddr :: BuiltinByteString
+  , cardanoPKH :: Address
   }
   deriving stock (Generic, Show)
+
 PlutusTx.unstableMakeIsData ''WitnessDatum
 
-data PWitnessDatum (s :: S)
+newtype PWitnessDatum (s :: S)
   = PWitnessDatum
       ( Term
           s
@@ -58,6 +58,7 @@ data GuardianRedeemer
   = ApproveWrap
   | DenyWrap
   deriving stock (Generic, Show)
+
 PlutusTx.unstableMakeIsData ''GuardianRedeemer
 
 data PGuardianRedeemer (s :: S)
@@ -98,7 +99,7 @@ instance DerivePlutusType PWitnessParameters where
 -- "(program 1.0.0 ((\\i0 -> constrData 0 (i1 (bData #616461736461) (i1 (bData #616161) [  ]))) (force mkCons)))"
 -- disabling the below
 -- Lucid error Emulator.tsx?04c9:34 Uncaught (in promise) Redeemer (Mint, 0): Failed to deserialise PlutusData using UnBData:
-data PWitnessParametersD (s :: S)
+newtype PWitnessParametersD (s :: S)
   = PWitnessParametersD
       ( Term
           s
@@ -114,7 +115,7 @@ data PWitnessParametersD (s :: S)
 instance DerivePlutusType PWitnessParametersD where
   type DPTStrat _ = PlutusTypeData
 
-validator :: Term s ((PAsData PScriptHash) :--> (PAsData PCurrencySymbol) :--> PValidator)
+validator :: Term s (PAsData PScriptHash :--> PAsData PCurrencySymbol :--> PValidator)
 validator = phoistAcyclic $
   plam $ \multisigVH multisigCert _ _ ctx -> unTermCont $ do
     contextFields <- pletFieldsC @["txInfo", "purpose"] ctx
@@ -140,8 +141,8 @@ validator = phoistAcyclic $
     pure $
       popaque $
         pif
-          ( (ptraceIfFalse "GuardianValidator f1" noScriptOutputs)
-              #&& (ptraceIfFalse "GuardianValidator f2" checkSigInp)
+          ( ptraceIfFalse "GuardianValidator f1" noScriptOutputs
+              #&& ptraceIfFalse "GuardianValidator f2" checkSigInp
           )
           (pconstant ())
           perror
