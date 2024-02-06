@@ -10,6 +10,7 @@
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Building and Developing](#building-and-developing)
+  - [Testing](#testing)
 
 # Introduction
 
@@ -151,3 +152,7 @@ cabal test
 ```
 
 ![plutarch-merkle-tree.gif](/assets/images/bridge-template.gif)
+
+## Testing
+
+For comprehensive information on testing the Bridge Template implementation, including unit tests and property-based tests, please refer to our [test documentation](/test/README.md).

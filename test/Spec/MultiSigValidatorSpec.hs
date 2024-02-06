@@ -1,3 +1,7 @@
+-- MultiSigValidatorSpec module, designed for testing the MultiSig Validator smart contract functionality.
+-- The module includes setup for test data and specifies test cases
+-- to validate the contract's behavior under various conditions.
+
 module Spec.MultiSigValidatorSpec (
   unitTest,
 )

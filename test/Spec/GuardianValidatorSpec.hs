@@ -1,3 +1,8 @@
+-- This module defines unit tests for the Guardian Validator smart contract.
+-- It includes setup for test data, such as UTXOs and script contexts,
+-- and specifies test cases to validate the contract's behavior
+-- under various conditions.
+
 module Spec.GuardianValidatorSpec (
   unitTest,
 )
