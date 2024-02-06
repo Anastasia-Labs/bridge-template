@@ -1,3 +1,8 @@
+-- This document outlines the Spec.WrapMintPolicySpec module,
+-- which is designed to test the Wrap Mint Policy of a smart contract.
+-- The module includes setup for test data and specifies test cases
+-- to validate the contract's behavior under various minting and burning conditions.
+
 module Spec.WrapMintPolicySpec (
   unitTest,
 ) where

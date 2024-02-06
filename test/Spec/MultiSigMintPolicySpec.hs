@@ -1,3 +1,7 @@
+-- MultiSigMintPolicySpec tests the MultiSig Mint Policy for a smart contract.
+-- The module sets up various testing scenarios
+-- to ensure the minting policy behaves as expected under different conditions.
+
 module Spec.MultiSigMintPolicySpec (
   unitTest,
 ) where
