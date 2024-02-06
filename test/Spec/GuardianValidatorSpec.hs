@@ -27,13 +27,18 @@ import PlutusLedgerApi.V2 (
   Credential (..),
   CurrencySymbol,
   ScriptContext,
-  ScriptHash,
+  ScriptHash(..),
   StakingCredential (..),
   Value,
-  singleton,
+  -- TxId(..),
+  singleton, 
+  -- toData
  )
 import PlutusTx qualified
 import Test.Tasty (TestTree)
+-- import Test.Tasty.QuickCheck (Gen, Property, forAll, listOf1, elements, choose, vectorOf, (===), counterexample)
+-- import Data.ByteString.Char8 (pack)
+-- import PlutusTx.Builtins (BuiltinByteString, toBuiltin)
 
 currencySymbol :: CurrencySymbol
 currencySymbol = "746fa3ba2daded6ab9ccc1e39d3835aa1dfcb9b5a54acc2ebe6b79a4"
@@ -46,9 +51,8 @@ scriptHash = "22e380f1157b688ac08f26a64e046b8b85632ba47c664c8f924b777e"
 
 multiSigValAddr :: Address
 multiSigValAddr =
-  let cred = "22e380f1157b688ac08f26a64e046b8b85632ba47c664c8f924b777e"
-      stakeCred = PubKeyCredential "b1f2f20a8781a3ba967d8c7b5068d21d799e809dcce22f651679d661"
-   in Address (ScriptCredential cred) (Just (StakingHash stakeCred))
+  let stakeCred = PubKeyCredential "b1f2f20a8781a3ba967d8c7b5068d21d799e809dcce22f651679d661"
+   in Address (ScriptCredential scriptHash) (Just (StakingHash stakeCred))
 
 multiSigValUTXO :: UTXO
 multiSigValUTXO =
@@ -131,3 +135,53 @@ unitTest = tryFromPTerm "Guardian Validator Unit Test" (validator # pdata (pcons
     , PlutusTx.toData ()
     , PlutusTx.toData invalidOutputCtx
     ]
+
+
+
+-- -- Generate a random ByteString of a given length
+-- genByteString :: Int -> Gen BuiltinByteString
+-- genByteString len = toBuiltin . pack <$> vectorOf len (elements (['a'..'z'] ++ ['0'..'9']))
+
+-- -- Generate a random Value within a specified range
+-- genValue :: Integer -> Integer -> Gen Value
+-- genValue minValue maxValue = do
+--     amount <- choose (minValue, maxValue)
+--     return $ singleton currencySymbol "" amount
+
+-- -- Generate a random Address (simplified version)
+-- genAddress :: Gen Address
+-- genAddress = do
+--     bs <- genByteString 32
+--     return $ Address (ScriptCredential $ ScriptHash bs ) Nothing
+
+-- -- Generate a random UTXO
+-- genUTXO :: Gen UTXO
+-- genUTXO = do
+--     addr <- genAddress
+--     val <- genValue 1000000 10000000  -- Adjust the range according to your needs
+--     refTxId <- genByteString 32  -- Simulating a transaction ID
+--     refIdx <- choose (0, 10)  -- Simulating an output index in a transaction
+--     return $ mconcat
+--         [ address addr
+--         , withValue val
+--         , withRefTxId (TxId refTxId)
+--         , withRefIndex refIdx
+--         ]
+
+-- -- Generate a valid ScriptContext
+-- genValidScriptContext :: Gen ScriptContext
+-- genValidScriptContext =  buildSpending' . input <$> genUTXO
+
+-- -- Generate an invalid ScriptContext
+-- genInvalidScriptContext :: Gen ScriptContext
+-- genInvalidScriptContext = buildSpending' . input <$> genUTXO
+
+-- prop_validatorSuccess :: Property
+-- prop_validatorSuccess = forAll genValidScriptContext $ \ctx ->
+--   let result = (validator # pdata (pconstant scriptHash) # pdata (pconstant currencySymbol))  (PlutusTx.toData ()) (PlutusTx.toData ()) (PlutusTx.toData ctx)
+--   in counterexample ("Validator failed for valid context: " ++ show ctx) $ result === True
+
+-- prop_validatorFailure :: Property
+-- prop_validatorFailure = forAll genInvalidScriptContext $ \ctx ->
+--   let result = (validator # pdata (pconstant scriptHash) # pdata (pconstant currencySymbol)) (PlutusTx.toData ()) (PlutusTx.toData ()) (PlutusTx.toData ctx)
+--   in counterexample ("Validator succeeded for invalid context: " ++ show ctx) $ result === False

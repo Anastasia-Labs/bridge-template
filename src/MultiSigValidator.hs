@@ -2,6 +2,7 @@
 
 module MultiSigValidator (
   validator,
+  pnoDuplicates,
   PMultisigDatum (PMultisigDatum),
   MultisigDatum (..),
   MultisigRedeemer (..),

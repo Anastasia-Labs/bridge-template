@@ -11,6 +11,7 @@ import MultiSigValidator (
   MultisigDatum (..),
   MultisigRedeemer (..),
   validator,
+  pnoDuplicates
  )
 import Plutarch.Context (
   UTXO,
@@ -33,7 +34,12 @@ import PlutusLedgerApi.V2 (
   singleton,
  )
 import PlutusTx qualified
-import Test.Tasty (TestTree)
+import Test.Tasty (TestTree, testGroup)
+
+import Test.Tasty.QuickCheck (Gen, Property, listOf, listOf1, elements, shuffle, testProperty, (===), forAll, arbitrary)
+import qualified PlutusTx.AssocMap as M
+import Plutarch.Prelude
+import Data.List(nub)
 
 multisigValAddress :: Address
 multisigValAddress =
@@ -206,3 +212,35 @@ unitTest = tryFromPTerm "MultiSig Validator Unit Test" validator $ do
     , PlutusTx.toData Sign
     , PlutusTx.toData wrongOutputDatumCtx
     ]
+
+-- Generator for a list without duplicates
+genListNoDuplicates :: Gen [Integer]
+genListNoDuplicates = nub <$> listOf arbitrary
+
+-- Generator for a list with at least one duplicate
+genListWithDuplicates :: Gen [Integer]
+genListWithDuplicates = do
+  xs <- listOf1 arbitrary
+  dup <- elements xs  -- Pick an element to duplicate
+  shuffle (dup : xs)  -- Shuffle to place the duplicate at a random position
+
+-- Property: `pnoDuplicates` should return True for a list without duplicates
+prop_noDuplicatesTrueForUniqueList :: Property
+prop_noDuplicatesTrueForUniqueList = forAll genListNoDuplicates $ \xs ->
+  -- Convert the Haskell list to a Plutarch list
+  let pxs = pconstant @(PBuiltinList PInteger) xs
+      result = pnoDuplicates # pxs
+  in result === pconstant True
+
+-- Property: `pnoDuplicates` should return False for a list with duplicates
+prop_noDuplicatesFalseForDuplicateList :: Property
+prop_noDuplicatesFalseForDuplicateList = forAll genListWithDuplicates $ \xs ->
+  let pxs = pconstant @(PBuiltinList PInteger) xs
+      result = pnoDuplicates # pxs
+  in  result === pconstant False
+
+pnoDuplicatesProperties :: TestTree
+pnoDuplicatesProperties = testGroup "pnoDuplicates Properties"
+  [ testProperty "True for unique list" prop_noDuplicatesTrueForUniqueList
+  , testProperty "False for duplicate list" prop_noDuplicatesFalseForDuplicateList
+  ]
