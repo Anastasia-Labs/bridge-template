@@ -14,5 +14,6 @@ main = do
       [ Spec.GuardianValidatorSpec.unitTest
       , Spec.MultiSigMintPolicySpec.unitTest
       , Spec.MultiSigValidatorSpec.unitTest
+      , Spec.MultiSigValidatorSpec.pnoDuplicatesProperties
       , Spec.WrapMintPolicySpec.unitTest
       ]

@@ -4,6 +4,7 @@
 
 module Spec.MultiSigValidatorSpec (
   unitTest,
+  pnoDuplicatesProperties
 )
 where
 
@@ -36,10 +37,10 @@ import PlutusLedgerApi.V2 (
 import PlutusTx qualified
 import Test.Tasty (TestTree, testGroup)
 
-import Test.Tasty.QuickCheck (Gen, Property, listOf, listOf1, elements, shuffle, testProperty, (===), forAll, arbitrary)
-import qualified PlutusTx.AssocMap as M
+import Test.Tasty.QuickCheck (Gen, Property, listOf, listOf1, elements, shuffle, testProperty, forAll, arbitrary, suchThat)
 import Plutarch.Prelude
 import Data.List(nub)
+import Plutarch.Test.QuickCheck (fromPFun)
 
 multisigValAddress :: Address
 multisigValAddress =
@@ -220,24 +221,19 @@ genListNoDuplicates = nub <$> listOf arbitrary
 -- Generator for a list with at least one duplicate
 genListWithDuplicates :: Gen [Integer]
 genListWithDuplicates = do
-  xs <- listOf1 arbitrary
+  xs <- (listOf1 arbitrary) `suchThat` (\l -> not $ null l)
   dup <- elements xs  -- Pick an element to duplicate
   shuffle (dup : xs)  -- Shuffle to place the duplicate at a random position
 
 -- Property: `pnoDuplicates` should return True for a list without duplicates
 prop_noDuplicatesTrueForUniqueList :: Property
 prop_noDuplicatesTrueForUniqueList = forAll genListNoDuplicates $ \xs ->
-  -- Convert the Haskell list to a Plutarch list
-  let pxs = pconstant @(PBuiltinList PInteger) xs
-      result = pnoDuplicates # pxs
-  in result === pconstant True
+  fromPFun $ pnoDuplicates # pconstant @(PBuiltinList PInteger) xs
 
 -- Property: `pnoDuplicates` should return False for a list with duplicates
 prop_noDuplicatesFalseForDuplicateList :: Property
 prop_noDuplicatesFalseForDuplicateList = forAll genListWithDuplicates $ \xs ->
-  let pxs = pconstant @(PBuiltinList PInteger) xs
-      result = pnoDuplicates # pxs
-  in  result === pconstant False
+  fromPFun $ pnot #$ pnoDuplicates # pconstant @(PBuiltinList PInteger) xs
 
 pnoDuplicatesProperties :: TestTree
 pnoDuplicatesProperties = testGroup "pnoDuplicates Properties"
