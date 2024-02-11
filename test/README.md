@@ -76,7 +76,7 @@ Upon running the tests, you will receive a summary of the test results indicatin
 Test suite bridge-template-test: RUNNING...
 Unit Test Group
   Guardian Validator Unit Test
-    Pass - Validation:                                        OK (0.02s)
+    Pass - Validation:                                        OK (0.03s)
     Failure - Invalid multisig input UTXO:                    OK
     Failure - Invalid multisig output UTXO:                   OK
   MultiSig Mint Policy Unit Test
@@ -95,12 +95,22 @@ Unit Test Group
     Failure - Sign Validation - miss signatories:             OK
     Failure - Sign Validation - wrong output datum:           OK
   Wrap Mint Policy Unit Test
-    Pass - Burn Policy:                                       OK (0.26s)
+    Pass - Burn Policy:                                       OK (0.27s)
     Failure - Burn Policy:                                    OK
     Success - Mint:                                           OK
     Failure - Mint Wrong Value:                               OK
     Failure - Mint Wrong Output Address:                      OK
+  pnoDuplicates Properties
+    True for unique list:                                     OK (0.04s)
+      +++ OK, passed 100 tests.
+    False for duplicate list:                                 OK
+      +++ OK, passed 100 tests.
+  psignedByAMajority Properties
+    True when valid signers meet or exceed required count:    OK (0.07s)
+      +++ OK, passed 100 tests.
+    False when valid signers are less than required count:    OK (0.10s)
+      +++ OK, passed 100 tests.
 
-All 21 tests passed (0.38s)
+All 25 tests passed (0.64s)
 Test suite bridge-template-test: PASS
 ```

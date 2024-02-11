@@ -4,15 +4,17 @@
 
 module Spec.MultiSigValidatorSpec (
   unitTest,
-  pnoDuplicatesProperties
+  pnoDuplicatesProperties,
+  psignedByAMajorityProperties,
 )
 where
 
 import MultiSigValidator (
   MultisigDatum (..),
   MultisigRedeemer (..),
+  pnoDuplicates,
+  psignedByAMajority,
   validator,
-  pnoDuplicates
  )
 import Plutarch.Context (
   UTXO,
@@ -31,16 +33,20 @@ import Plutarch.Test.Precompiled (Expectation (Failure, Success), testEvalCase, 
 import PlutusLedgerApi.V2 (
   Address (..),
   Credential (..),
+  PubKeyHash (..),
   ScriptContext,
   singleton,
  )
 import PlutusTx qualified
 import Test.Tasty (TestTree, testGroup)
 
-import Test.Tasty.QuickCheck (Gen, Property, listOf, listOf1, elements, shuffle, testProperty, forAll, arbitrary, suchThat)
+import Data.ByteString.Char8 (pack)
+import Data.List (nub)
+import Plutarch.Api.V2 (PPubKeyHash)
 import Plutarch.Prelude
-import Data.List(nub)
 import Plutarch.Test.QuickCheck (fromPFun)
+import PlutusTx.Builtins (toBuiltin)
+import Test.Tasty.QuickCheck (Gen, Property, arbitrary, choose, elements, forAll, listOf, listOf1, shuffle, suchThat, testProperty, vectorOf)
 
 multisigValAddress :: Address
 multisigValAddress =
@@ -221,9 +227,9 @@ genListNoDuplicates = nub <$> listOf arbitrary
 -- Generator for a list with at least one duplicate
 genListWithDuplicates :: Gen [Integer]
 genListWithDuplicates = do
-  xs <- (listOf1 arbitrary) `suchThat` (\l -> not $ null l)
-  dup <- elements xs  -- Pick an element to duplicate
-  shuffle (dup : xs)  -- Shuffle to place the duplicate at a random position
+  xs <- listOf1 arbitrary `suchThat` \l -> not $ null l
+  dup <- elements xs -- Pick an element to duplicate
+  shuffle (dup : xs) -- Shuffle to place the duplicate at a random position
 
 -- Property: `pnoDuplicates` should return True for a list without duplicates
 prop_noDuplicatesTrueForUniqueList :: Property
@@ -236,7 +242,58 @@ prop_noDuplicatesFalseForDuplicateList = forAll genListWithDuplicates $ \xs ->
   fromPFun $ pnot #$ pnoDuplicates # pconstant @(PBuiltinList PInteger) xs
 
 pnoDuplicatesProperties :: TestTree
-pnoDuplicatesProperties = testGroup "pnoDuplicates Properties"
-  [ testProperty "True for unique list" prop_noDuplicatesTrueForUniqueList
-  , testProperty "False for duplicate list" prop_noDuplicatesFalseForDuplicateList
-  ]
+pnoDuplicatesProperties =
+  testGroup
+    "pnoDuplicates Properties"
+    [ testProperty "True for unique list" prop_noDuplicatesTrueForUniqueList
+    , testProperty "False for duplicate list" prop_noDuplicatesFalseForDuplicateList
+    ]
+
+-- Generator for a PubKeyHash based on a subset of characters
+genPubKeyHash :: Gen PubKeyHash
+genPubKeyHash = do
+  member <- vectorOf 32 $ elements (['a' .. 'f'] ++ ['0' .. '9']) -- Hexadecimal representation
+  return $ PubKeyHash . toBuiltin . pack $ member
+
+-- Function to convert a Haskell list of PubKeyHash to a Plutarch list of PAsData PPubKeyHash
+toPlutarchList :: [PubKeyHash] -> Term s (PBuiltinList (PAsData PPubKeyHash))
+toPlutarchList = foldr (\x -> (#) (pcons # pdata (pconstant x))) pnil
+
+-- Generator for a required count
+genRequiredCount :: [a] -> Gen Integer
+genRequiredCount signers = choose (1, toInteger $ length signers - 1)
+
+-- Custom generator to create a non-empty sublist from a given list
+sublistOf1 :: [a] -> Gen [a]
+sublistOf1 [] = return [] -- If the list is empty, return an empty list (shouldn't happen with non-empty input list)
+sublistOf1 lst = do
+  -- Generate a non-empty sublist by ensuring at least one element is always selected
+  indices <- listOf1 $ choose (0, length lst - 1) -- Choose at least one index
+  return [lst !! i | i <- indices] -- Return unique elements corresponding to the chosen indices
+
+-- Adjusted generator for allKeys and signers
+genAllKeysAndSigners :: Gen ([PubKeyHash], [PubKeyHash], Integer)
+genAllKeysAndSigners = do
+  allKeysHaskell <- listOf1 genPubKeyHash -- Generate a Haskell list of PubKeyHash
+  signersHaskell <- sublistOf1 allKeysHaskell -- Generate a sublist for signers
+  requiredCount <- genRequiredCount signersHaskell -- Generate required count based on the Haskell list of signers
+  return (allKeysHaskell, signersHaskell, requiredCount)
+
+-- Property: `psignedByAMajority` should return True when the number of valid signers meets or exceeds the required count
+prop_signedByMajorityTrue :: Property
+prop_signedByMajorityTrue = forAll genAllKeysAndSigners $ \(allKeys, signers, requiredCount) ->
+  fromPFun $ psignedByAMajority # toPlutarchList allKeys # pconstant requiredCount # toPlutarchList signers
+
+-- Property: `psignedByAMajority` should return False when the number of valid signers is less than the required count
+prop_signedByMajorityFalse :: Property
+prop_signedByMajorityFalse = forAll genAllKeysAndSigners $ \(allKeys, signers, _) ->
+  let validSignersCount = toInteger $ length signers + 1 -- Ensure requiredCount is not met
+   in fromPFun $ pnot #$ psignedByAMajority # toPlutarchList allKeys # pconstant validSignersCount # toPlutarchList signers
+
+psignedByAMajorityProperties :: TestTree
+psignedByAMajorityProperties =
+  testGroup
+    "psignedByAMajority Properties"
+    [ testProperty "True when valid signers meet or exceed required count" prop_signedByMajorityTrue
+    , testProperty "False when valid signers are less than required count" prop_signedByMajorityFalse
+    ]
