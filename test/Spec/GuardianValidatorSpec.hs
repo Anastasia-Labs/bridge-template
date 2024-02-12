@@ -27,7 +27,7 @@ import PlutusLedgerApi.V2 (
   Credential (..),
   CurrencySymbol,
   ScriptContext,
-  ScriptHash,
+  ScriptHash (..),
   StakingCredential (..),
   Value,
   singleton,
@@ -46,9 +46,8 @@ scriptHash = "22e380f1157b688ac08f26a64e046b8b85632ba47c664c8f924b777e"
 
 multiSigValAddr :: Address
 multiSigValAddr =
-  let cred = "22e380f1157b688ac08f26a64e046b8b85632ba47c664c8f924b777e"
-      stakeCred = PubKeyCredential "b1f2f20a8781a3ba967d8c7b5068d21d799e809dcce22f651679d661"
-   in Address (ScriptCredential cred) (Just (StakingHash stakeCred))
+  let stakeCred = PubKeyCredential "b1f2f20a8781a3ba967d8c7b5068d21d799e809dcce22f651679d661"
+   in Address (ScriptCredential scriptHash) (Just (StakingHash stakeCred))
 
 multiSigValUTXO :: UTXO
 multiSigValUTXO =

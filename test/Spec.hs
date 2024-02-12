@@ -15,4 +15,6 @@ main = do
       , Spec.MultiSigMintPolicySpec.unitTest
       , Spec.MultiSigValidatorSpec.unitTest
       , Spec.WrapMintPolicySpec.unitTest
+      , Spec.MultiSigValidatorSpec.pnoDuplicatesProperties
+      , Spec.MultiSigValidatorSpec.psignedByAMajorityProperties
       ]

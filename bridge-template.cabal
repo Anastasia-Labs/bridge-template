@@ -134,6 +134,7 @@ common test-dependencies
     , tasty
     , tasty-hedgehog
     , tasty-hunit
+    , tasty-quickcheck
     , text
     , uuid
 
