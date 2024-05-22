@@ -158,7 +158,7 @@ cabal test
 To provide a seamless experience for running and trying out our application, click the workspace button below. This will start a workspace in Demeter with our repository code automatically cloned.
 
 
-[![Code in Workspace](https://demeter.run/code/badge.svg)](https://demeter.run/code?repository=https://github.com/Anastasia-Labs/bridge-template&template=haskell&size=large) 
+[![Code in Workspace](https://demeter.run/code/badge.svg)](https://demeter.run/code?repository=https://github.com/Anastasia-Labs/bridge-template&template=plutus&size=large) 
 
 ## Testing
 
