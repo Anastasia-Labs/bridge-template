@@ -153,6 +153,13 @@ cabal test
 
 ![plutarch-merkle-tree.gif](/assets/images/bridge-template.gif)
 
+## Demeter Workspace 
+
+To provide a seamless experience for running and trying out our application, click the workspace button below. This will start a workspace in Demeter with our repository code automatically cloned.
+
+
+[![Code in Workspace](https://demeter.run/code/badge.svg)](https://demeter.run/code?repository=https://github.com/Anastasia-Labs/bridge-template&template=haskell&size=large) 
+
 ## Testing
 
 For comprehensive information on testing the Bridge Template implementation, including unit tests and property-based tests, please refer to our [test documentation](/test/README.md).
